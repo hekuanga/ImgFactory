@@ -37,6 +37,9 @@ WORKDIR /app
 # 设置环境变量
 ENV NODE_ENV production
 
+# 安装curl用于健康检查
+RUN apk add --no-cache curl
+
 # 创建non-root用户
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs

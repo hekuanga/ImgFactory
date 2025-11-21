@@ -1,21 +1,48 @@
-version: '3'
+version: '3.8'
+
+# 定义网络，增强容器间通信安全性
+networks:
+  restorephotos_network:
+    driver: bridge
 
 services:
+  # 应用服务
   app:
     build: .
-    restart: always
+    restart: always  # 容器崩溃时自动重启
     ports:
-      - "3000:3000"
+      - "3001:3000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy  # 确保数据库健康后再启动应用
     environment:
       - NODE_ENV=production
-      - NEXTAUTH_URL=http://localhost:3000
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/restorephotos
       - SHADOW_DATABASE_URL=postgresql://postgres:postgres@db:5432/restorephotos_shadow
     volumes:
       - .env:/app/.env:ro
+      - app_logs:/app/logs  # 持久化日志
+      - cache_data:/app/.next/cache  # 持久化Next.js缓存
+    networks:
+      - restorephotos_network
+    # 健康检查配置
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # 资源限制
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
   
+  # 数据库服务
   db:
     image: postgres:14-alpine
     restart: always
@@ -25,8 +52,32 @@ services:
       - POSTGRES_DB=restorephotos
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d  # 数据库初始化脚本
     ports:
       - "5432:5432"
+    networks:
+      - restorephotos_network
+    # 健康检查配置
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d restorephotos"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # 资源限制
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
 
+# 持久化卷定义
 volumes:
-  postgres_data:
+  postgres_data:  # 数据库数据持久化
+    driver: local
+  app_logs:  # 应用日志持久化
+    driver: local
+  cache_data:  # 缓存数据持久化
+    driver: local

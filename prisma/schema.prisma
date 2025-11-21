@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String   @id @default(uuid())
+  email             String   @unique
+  emailVerified     Boolean  @default(false) @map("email_verified")
+  name              String?
+  image             String?
+  // Stripe 订阅相关字段
+  isSubscribed      Boolean  @default(false) @map("is_subscribed")
+  stripeCustomerId  String?  @map("stripe_customer_id")
+  stripeSubscriptionId String? @map("stripe_subscription_id")
+  subscriptionStatus String? @map("subscription_status") // active, canceled, past_due, etc.
+  subscriptionTier  String?  @default("free") @map("subscription_tier") // free, pro, vip
+  currentPeriodEnd  DateTime? @map("current_period_end") // 当前订阅周期结束时间
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model ImageProcessingHistory {
+  id              String   @id @default(uuid())
+  userId          String?  @map("user_id")
+  originalImageUrl String? @map("original_image_url")
+  processedImageUrl String? @map("processed_image_url")
+  processingType  String?  @map("processing_type")
+  status          String   @default("pending")
+  createdAt       DateTime @default(now()) @map("created_at")
+  completedAt     DateTime? @map("completed_at")
+
+  @@map("image_processing_history")
+}
+
+model UsageLimits {
+  id            String   @id @default(uuid())
+  userId        String?  @map("user_id")
+  apiCallsCount Int      @default(0) @map("api_calls_count")
+  lastResetAt   DateTime @default(now()) @map("last_reset_at")
+
+  @@map("usage_limits")
+}
+
