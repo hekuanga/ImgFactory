@@ -106,6 +106,9 @@ const Home: NextPage = () => {
           <UploadDropzone
             options={options}
             onUpdate={({ uploadedFiles }) => {
+              // 清除之前的错误
+              setError(null);
+              
               if (uploadedFiles.length !== 0) {
                 const image = uploadedFiles[0];
                 const imageName = image.originalFile.originalFileName;
@@ -124,6 +127,24 @@ const Home: NextPage = () => {
             width='100%'
             height='280px'
           />
+          
+          {/* 在上传组件下方显示错误提示 */}
+          {error && (
+            <div
+              className='bg-red-50 border-2 border-red-300 text-red-700 px-4 py-3 rounded-xl mt-4 shadow-lg'
+              role='alert'
+            >
+              <div className='flex items-center gap-2 mb-1'>
+                <svg className='w-5 h-5 flex-shrink-0' fill='currentColor' viewBox='0 0 20 20'>
+                  <path fillRule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z' clipRule='evenodd' />
+                </svg>
+                <span className='font-bold text-sm'>{language === 'zh' ? '上传错误' : 'Upload Error'}</span>
+              </div>
+              <div className='text-sm whitespace-pre-line ml-7'>
+                {error}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
