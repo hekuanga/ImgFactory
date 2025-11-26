@@ -31,7 +31,7 @@ function initializeStripe(): Stripe {
   if (!stripeInstance) {
     const secretKey = getStripeSecretKey();
     stripeInstance = new Stripe(secretKey, {
-      apiVersion: '2024-12-18.acacia', // 使用最新的 API 版本
+      apiVersion: '2023-10-16', // 使用类型定义支持的 API 版本
       typescript: true,
     });
   }
