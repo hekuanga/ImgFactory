@@ -111,9 +111,21 @@ export default async function handler(
     });
   } catch (error) {
     console.error('Get subscription status error:', error);
+    
+    // 检查是否是数据库连接错误
+    let errorMessage = 'Internal server error';
+    if (error instanceof Error) {
+      if (error.message.includes('Can\'t reach database server') || error.message.includes('connect')) {
+        errorMessage = 'Database connection failed. Please check your database configuration.';
+        console.error('Database connection error - check DATABASE_URL and network connectivity');
+      } else {
+        errorMessage = error.message;
+      }
+    }
+    
     return res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Internal server error'
+      error: errorMessage
     });
   }
 }

@@ -150,7 +150,12 @@ async function callArkSDK(imageUrl: string): Promise<{ success: boolean; result?
         } else if (response.status === 403) {
           errorMessage = '方舟SDK API权限不足：请检查 API 密钥权限\nForbidden: Please check API key permissions';
         } else if (response.status === 400 || response.status === 422) {
-          errorMessage = `方舟SDK API请求格式错误: ${errorDetailText.substring(0, 200)}\nRequest format error: Please check request parameters`;
+          // 检查是否是敏感内容检测错误
+          if (errorCode === 'InputImageSensitiveContentDetected') {
+            errorMessage = '图片内容检测：系统检测到图片可能包含敏感内容，无法进行处理。请尝试使用其他图片。\nImage content detected: The system detected that the image may contain sensitive content and cannot be processed. Please try using a different image.';
+          } else {
+            errorMessage = `方舟SDK API请求格式错误: ${errorDetailText.substring(0, 200)}\nRequest format error: Please check request parameters`;
+          }
         } else if (response.status === 413) {
           errorMessage = '方舟SDK API请求体过大：图片太大，请压缩后重试\nRequest too large: Please compress the image';
         } else if (response.status === 429) {
