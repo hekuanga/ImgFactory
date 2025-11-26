@@ -292,9 +292,17 @@ async function callReplicate(imageUrl: string): Promise<{ success: boolean; resu
   console.log('===== 调用Replicate开始 =====');
   
   // 检查Replicate API密钥
-  if (!process.env.REPLICATE_API_KEY || process.env.REPLICATE_API_KEY === 'YOUR_REPLICATE_API_KEY') {
-    const errorMsg = 'Replicate API密钥未配置';
+  const replicateApiKey = process.env.REPLICATE_API_KEY;
+  console.log('Replicate API Key 检查:');
+  console.log('  - 环境变量存在:', !!replicateApiKey);
+  console.log('  - API Key 长度:', replicateApiKey?.length || 0);
+  console.log('  - API Key 前缀:', replicateApiKey?.substring(0, 10) || 'N/A');
+  console.log('  - 是否为默认值:', replicateApiKey === 'YOUR_REPLICATE_API_KEY');
+  
+  if (!replicateApiKey || replicateApiKey === 'YOUR_REPLICATE_API_KEY' || replicateApiKey.trim() === '') {
+    const errorMsg = 'Replicate API密钥未配置或无效';
     console.error(errorMsg);
+    console.error('请检查环境变量 REPLICATE_API_KEY 是否正确设置');
     return { success: false, error: errorMsg };
   }
   
