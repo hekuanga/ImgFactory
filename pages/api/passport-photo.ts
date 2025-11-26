@@ -1,7 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createRouter } from 'next-connect';
 import multer from 'multer';
-import { MAX_FILE_SIZE, formatFileSize } from '../../constants/upload';
+import { getMaxFileSize, formatFileSize } from '../../constants/upload';
+
+// 根据是否有 API key 获取最大文件大小（后端默认使用付费账户限制）
+const hasApiKey = !!process.env.NEXT_PUBLIC_UPLOAD_API_KEY;
+const MAX_FILE_SIZE = getMaxFileSize(hasApiKey);
 
 // 配置临时存储
 const upload = multer({ 

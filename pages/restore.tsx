@@ -16,7 +16,7 @@ import Toggle from '../components/Toggle';
 import appendNewToName from '../utils/appendNewToName';
 import downloadPhoto from '../utils/downloadPhoto';
 import { useTranslation } from '../hooks/useTranslation';
-import { MAX_FILE_SIZE, formatFileSize } from '../constants/upload';
+import { getMaxFileSize, formatFileSize } from '../constants/upload';
 
 const Home: NextPage = () => {
   const { t, language } = useTranslation();
@@ -48,11 +48,15 @@ const Home: NextPage = () => {
     }
   };
 
+  const hasApiKey = !!process.env.NEXT_PUBLIC_UPLOAD_API_KEY;
+  const maxFileSize = getMaxFileSize(hasApiKey);
+
   const options: UploadWidgetConfig = {
-    apiKey: !!process.env.NEXT_PUBLIC_UPLOAD_API_KEY
+    apiKey: hasApiKey
       ? (process.env.NEXT_PUBLIC_UPLOAD_API_KEY as string)
       : 'free',
     maxFileCount: 1,
+    maxFileSizeBytes: maxFileSize, // 设置组件支持的最大文件大小
     mimeTypes: ['image/jpeg', 'image/png', 'image/jpg'],
     editor: { images: { crop: false } },
     styles: { 
@@ -68,8 +72,8 @@ const Home: NextPage = () => {
       file: File
     ): Promise<UploadWidgetOnPreUploadResult | undefined> => {
       // 检查文件大小
-      if (file.size > MAX_FILE_SIZE) {
-        const maxSizeStr = formatFileSize(MAX_FILE_SIZE);
+      if (file.size > maxFileSize) {
+        const maxSizeStr = formatFileSize(maxFileSize);
         const errorMsg = language === 'zh' 
           ? `图片大小不能超过${maxSizeStr}`
           : `Image size cannot exceed ${maxSizeStr}`;
