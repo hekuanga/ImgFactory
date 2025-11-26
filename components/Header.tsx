@@ -138,17 +138,18 @@ export default function Header() {
               <button
                 ref={logoButtonRef}
                 className={`
-                  relative px-4 sm:px-6 lg:px-8 py-2 sm:py-2.5 lg:py-3
+                  relative px-3 sm:px-4 lg:px-6 xl:px-8 py-2 sm:py-2.5 lg:py-3
                 bg-gradient-to-b from-[#F7F4E9] to-[#FCF7E3] dark:from-slate-800 dark:to-slate-700 rounded-[24px] sm:rounded-[28px] lg:rounded-[32px]
                 border-[3px] sm:border-[4px] border-[#CFC3A7] dark:border-slate-600
-                text-slate-900 dark:text-slate-100 font-medium text-base sm:text-lg lg:text-xl
+                text-slate-900 dark:text-slate-100 font-medium text-sm sm:text-base lg:text-lg xl:text-xl
                   transition-all duration-200
                   hover:scale-105 hover:shadow-lg
-                  flex items-center gap-2 sm:gap-3
+                  flex items-center gap-1.5 sm:gap-2 lg:gap-3
                   before:absolute before:inset-0 before:rounded-[24px] sm:before:rounded-[28px] lg:before:rounded-[32px]
                   before:bg-gradient-to-br before:from-[#FFF8E0]/40 before:to-transparent
                   before:pointer-events-none
                   shadow-md
+                  whitespace-nowrap
                 `}
               >
                 {/* 相机图标 */}
