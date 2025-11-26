@@ -43,8 +43,8 @@ if (!supabaseAnonKey) {
  * 使用匿名 key，受 RLS（Row Level Security）策略限制
  */
 export const supabaseClient: SupabaseClient<Database> = createClient<Database>(
-  supabaseUrl,
-  supabaseAnonKey,
+  supabaseUrl as string,
+  supabaseAnonKey as string,
   {
     auth: {
       autoRefreshToken: true,
@@ -60,8 +60,8 @@ export const supabaseClient: SupabaseClient<Database> = createClient<Database>(
  * 仅在服务端使用，不要暴露到客户端
  */
 export const supabaseServer: SupabaseClient<Database> = createClient<Database>(
-  supabaseUrl,
-  supabaseServiceRoleKey || supabaseAnonKey, // 如果没有 service role key，回退到 anon key
+  supabaseUrl as string,
+  (supabaseServiceRoleKey || supabaseAnonKey) as string, // 如果没有 service role key，回退到 anon key
   {
     auth: {
       autoRefreshToken: false,

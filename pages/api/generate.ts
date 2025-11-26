@@ -268,6 +268,9 @@ async function callArkSDK(imageUrl: string): Promise<{ success: boolean; result?
       }
     }
   }
+  
+  // 如果所有重试都失败（理论上不应该到达这里，但为了类型安全）
+  return { success: false, error: '方舟SDK调用失败：未知错误' };
 }
 
 // 调用Replicate修复图片
@@ -390,10 +393,14 @@ async function callReplicate(imageUrl: string): Promise<{ success: boolean; resu
       if (jsonStartResponse.output) {
         if (typeof jsonStartResponse.output === 'string') {
           restoredImage = jsonStartResponse.output;
-          console.log('从响应中提取字符串URL:', restoredImage.substring(0, 150));
+          if (restoredImage) {
+            console.log('从响应中提取字符串URL:', restoredImage.substring(0, 150));
+          }
         } else if (jsonStartResponse.output.url) {
           restoredImage = jsonStartResponse.output.url;
-          console.log('从响应中提取URL字段:', restoredImage.substring(0, 150));
+          if (restoredImage) {
+            console.log('从响应中提取URL字段:', restoredImage.substring(0, 150));
+          }
         } else if (Array.isArray(jsonStartResponse.output) && jsonStartResponse.output.length > 0) {
           // 兼容数组格式的输出
           const firstOutput = jsonStartResponse.output[0];
@@ -409,7 +416,9 @@ async function callReplicate(imageUrl: string): Promise<{ success: boolean; resu
           for (const field of possibleUrlFields) {
             if (jsonStartResponse.output[field]) {
               restoredImage = jsonStartResponse.output[field];
-              console.log(`从响应中提取${field}字段:`, restoredImage.substring(0, 150));
+              if (restoredImage) {
+                console.log(`从响应中提取${field}字段:`, restoredImage.substring(0, 150));
+              }
               break;
             }
           }
@@ -489,6 +498,9 @@ async function callReplicate(imageUrl: string): Promise<{ success: boolean; resu
       }
     }
   }
+  
+  // 如果所有重试都失败（理论上不应该到达这里，但为了类型安全）
+  return { success: false, error: 'Replicate调用失败：未知错误' };
 }
 
 export default async function handler(
