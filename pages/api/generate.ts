@@ -162,6 +162,10 @@ async function callArkSDK(imageUrl: string): Promise<{ success: boolean; result?
             errorMessage = '图片内容检测：系统检测到图片可能包含敏感内容，无法进行处理。请尝试使用其他图片。\nImage content detected: The system detected that the image may contain sensitive content and cannot be processed. Please try using a different image.';
           } else if (errorCode === 'InputTextSensitiveContentDetected') {
             errorMessage = '提示词检测：系统检测到提示词可能包含敏感内容。请尝试使用其他图片或联系客服。\nText content detected: The system detected that the prompt may contain sensitive content. Please try using a different image or contact support.';
+          } else if (errorCode === 'OutputImageSensitiveContentDetected' || 
+                     (typeof errorDetailText === 'string' && errorDetailText.toLowerCase().includes('output image') && errorDetailText.toLowerCase().includes('sensitive'))) {
+            // 输出图片敏感内容检测错误
+            errorMessage = '输出图片检测：系统检测到生成的图片可能包含敏感内容，无法返回结果。这可能是由于AI误判，请尝试使用其他图片或调整提示词。\nOutput image detected: The system detected that the generated image may contain sensitive content and cannot return the result. This may be a false positive, please try using a different image or adjusting the prompt.';
           } else {
             errorMessage = `方舟SDK API请求格式错误: ${errorDetailText.substring(0, 200)}\nRequest format error: Please check request parameters`;
           }
