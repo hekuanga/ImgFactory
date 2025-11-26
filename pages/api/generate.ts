@@ -44,12 +44,12 @@ async function callArkSDK(imageUrl: string): Promise<{ success: boolean; result?
   while (retryCount <= maxRetries) {
     try {
         // 构建方舟SDK请求参数（参考证件照生成API的格式）
-        // 优化提示词：提升颜色还原准确性，避免陈旧感，保持现代自然效果
-        const prompt = `专业照片修复和色彩还原，高清细节，自然真实的色彩还原，准确还原原始色彩和色调，保持照片的原始风格和时代特征，现代感处理，去除老化痕迹，修复划痕和破损，增强清晰度，保持照片完整性，不裁切，完整保留原图主体内容`;
+        // 优化提示词：简化描述，降低敏感内容检测误判率，专注于照片修复核心功能
+        const prompt = `照片修复，色彩还原，高清细节，自然真实，保持原图风格，修复划痕破损，增强清晰度，完整保留原图内容`;
         
-        // 添加负面提示词，帮助避免敏感内容检测（与证件照生成API保持一致，避免使用可能触发检测的敏感词）
-        // 注意：负面提示词中避免直接提及敏感词，而是描述要避免的视觉特征
-        const negativePrompt = '相框、边框、装饰、滤镜、文字、水印、logo、背景杂乱或渐变、光影不均、过度美颜、塑料质感、磨皮严重、无毛孔皮肤、发光肤色、AI痕迹、艺术风格化、面部比例失真、夸张妆容、低分辨率、虚化或模糊区域、beauty filter, retouched skin, airbrushed, AI enhancement, over-smooth skin, plastic look, poreless skin, face morphing, unrealistic perfection, makeup, glowing skin, stylized portrait, inconsistent face, distorted features, uneven lighting, low resolution, text, watermark, busy background';
+        // 添加负面提示词，帮助避免敏感内容检测
+        // 简化负面提示词，避免过多描述可能触发检测的词汇
+        const negativePrompt = '相框、边框、装饰、滤镜、文字、水印、logo、背景杂乱、过度美颜、塑料质感、磨皮严重、AI痕迹、艺术风格化、面部比例失真、低分辨率、模糊、text, watermark, busy background, beauty filter, airbrushed, AI enhancement, plastic look, stylized portrait, distorted features, low resolution';
         
         // 将negative_prompt融入到prompt中（与证件照生成API格式一致）
         const fullPrompt = `${prompt} ${negativePrompt ? `Negative prompt: ${negativePrompt}` : ''}`;
