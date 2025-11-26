@@ -1,3 +1,49 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-cream text-slate-900;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  }
+  
+  /* 平滑滚动 */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* 自定义滚动条样式 */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-cream;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-beige-light rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-beige;
+  }
+}
+
+@layer components {
+  /* 按钮样式 */
+  .btn-primary {
+    @apply bg-black text-white font-medium px-6 py-3 rounded-xl hover:bg-black/80 transition-all duration-200;
+  }
+  
+  .btn-secondary {
+    @apply bg-white text-black border-2 border-beige font-medium px-6 py-3 rounded-xl hover:bg-cream-light transition-all duration-200;
+  }
+  
+  /* 卡片样式 */
+  .card {
+    @apply bg-cream rounded-3xl p-6 sm:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.1)] border-4 border-beige;
+  }
+}

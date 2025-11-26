@@ -102,7 +102,7 @@ const Login: NextPage = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3290EE] focus:border-transparent outline-none transition'
+                className='w-full px-4 py-3 border-2 border-[#E8DEBB] rounded-lg focus:ring-2 focus:ring-black focus:border-black outline-none transition bg-white text-slate-700'
                 placeholder='your@email.com'
                 disabled={loading}
               />
@@ -119,7 +119,7 @@ const Login: NextPage = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className='w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#3290EE] focus:border-transparent outline-none transition'
+                className='w-full px-4 py-3 border-2 border-[#E8DEBB] rounded-lg focus:ring-2 focus:ring-black focus:border-black outline-none transition bg-white text-slate-700'
                 placeholder='请输入密码'
                 disabled={loading}
               />

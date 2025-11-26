@@ -1,7 +1,7 @@
 import { NextPage } from 'next';
 import Head from 'next/head';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { UrlBuilder } from '@bytescale/sdk';
 import {
   UploadWidgetConfig,
@@ -24,6 +24,26 @@ const Home: NextPage = () => {
   const [sideBySide, setSideBySide] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [photoName, setPhotoName] = useState<string | null>(null);
+  const [selectedModel, setSelectedModel] = useState<string>('replicate'); // 默认使用Replicate
+  const [usedModel, setUsedModel] = useState<string | null>(null);
+  const [remainingGenerations, setRemainingGenerations] = useState<number>(2);
+  const [modelSwitchMessage, setModelSwitchMessage] = useState<string | null>(null);
+
+  // 组件挂载时加载剩余次数
+  useEffect(() => {
+    loadRemainingGenerations();
+  }, []);
+
+  // 加载剩余生成次数
+  const loadRemainingGenerations = async () => {
+    try {
+      const res = await fetch('/api/remaining');
+      const data = await res.json();
+      setRemainingGenerations(data.remainingGenerations);
+    } catch (error) {
+      console.error('加载剩余次数失败:', error);
+    }
+  };
 
   const options: UploadWidgetConfig = {
     apiKey: !!process.env.NEXT_PUBLIC_UPLOAD_API_KEY
@@ -32,7 +52,15 @@ const Home: NextPage = () => {
     maxFileCount: 1,
     mimeTypes: ['image/jpeg', 'image/png', 'image/jpg'],
     editor: { images: { crop: false } },
-    styles: { colors: { primary: '#000' } },
+    styles: { 
+      colors: { primary: '#000' },
+      fonts: { base: 'system-ui, -apple-system, sans-serif' }
+    },
+    locale: {
+      'orDragDrop': '或拖拽图片到此处',
+      'upload': '上传图片',
+      'browse': '浏览文件'
+    },
     onPreUpload: async (
       file: File
     ): Promise<UploadWidgetOnPreUploadResult | undefined> => {
@@ -42,40 +70,67 @@ const Home: NextPage = () => {
   };
 
   const UploadDropZone = () => (
-    <UploadDropzone
-      options={options}
-      onUpdate={({ uploadedFiles }) => {
-        if (uploadedFiles.length !== 0) {
-          const image = uploadedFiles[0];
-          const imageName = image.originalFile.originalFileName;
-          // 使用原始文件URL，确保API可以正确识别图片格式
-          const imageUrl = UrlBuilder.url({
-            accountId: image.accountId,
-            filePath: image.filePath,
-            // 移除 transformation 选项，使用原始文件
-          });
-          setPhotoName(imageName);
-          setOriginalPhoto(imageUrl);
-          generatePhoto(imageUrl);
-        }
-      }}
-      width='670px'
-      height='250px'
-    />
+    <div className='w-full max-w-4xl'>
+      {/* 中文提示 */}
+      <div className='text-center mb-4'>
+        <p className='text-base sm:text-lg text-slate-700 font-medium mb-2'>
+          请在此处上传您要修复的照片
+        </p>
+        <p className='text-sm text-slate-500'>
+          支持 JPG、PNG 格式，或直接拖拽图片到下方区域
+        </p>
+      </div>
+      
+      {/* 上传组件容器 - 更突出的样式 */}
+      <div className='relative bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-[0_8px_32px_rgba(0,0,0,0.15)] border-4 border-[#E8DEBB]'>
+        {/* 装饰效果 */}
+        <div className='absolute inset-0 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#FFF8E0]/20 to-transparent pointer-events-none'></div>
+        
+        {/* 上传组件 */}
+        <div className='relative z-10'>
+          <UploadDropzone
+            options={options}
+            onUpdate={({ uploadedFiles }) => {
+              if (uploadedFiles.length !== 0) {
+                const image = uploadedFiles[0];
+                const imageName = image.originalFile.originalFileName;
+                // 使用原始文件URL，确保API可以正确识别图片格式
+                const imageUrl = UrlBuilder.url({
+                  accountId: image.accountId,
+                  filePath: image.filePath,
+                  // 移除 transformation 选项，使用原始文件
+                });
+                setPhotoName(imageName);
+                setOriginalPhoto(imageUrl);
+                // 恢复自动修复功能
+                generatePhoto(imageUrl);
+              }
+            }}
+            width='100%'
+            height='280px'
+          />
+        </div>
+      </div>
+    </div>
   );
 
   async function generatePhoto(fileUrl: string) {
     await new Promise((resolve) => setTimeout(resolve, 500));
     setLoading(true);
+    setError(null);
+    setModelSwitchMessage(null);
 
     try {
-      // Direct call to generate API without checking remaining API
+      // 调用API，传递所选模型
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ imageUrl: fileUrl }),
+        body: JSON.stringify({ 
+          imageUrl: fileUrl,
+          model: selectedModel // 传递所选模型
+        }),
       });
 
       let response = await res.json();
@@ -83,7 +138,21 @@ const Home: NextPage = () => {
         // 直接使用响应内容作为错误消息，因为API返回的是错误字符串
         setError(response || '照片修复失败，请稍后再试。');
       } else {
-        setRestoredImage(response);
+        // 检查响应类型
+        if (typeof response === 'string') {
+          // 如果是字符串，直接作为图片URL
+          setRestoredImage(response);
+        } else if (response && typeof response === 'object') {
+          // 如果是对象，提取图片URL和使用的模型
+          setRestoredImage(response.imageUrl);
+          if (response.usedModel) {
+            setUsedModel(response.usedModel);
+          }
+          // 检查是否有模型切换信息
+          if (response.modelSwitchInfo) {
+            setModelSwitchMessage(response.modelSwitchInfo);
+          }
+        }
       }
     } catch (error) {
       // 提供更详细的捕获异常信息
@@ -91,22 +160,116 @@ const Home: NextPage = () => {
       setError('服务器通信失败，请检查网络连接或稍后再试。');
     } finally {
       setLoading(false);
+      loadRemainingGenerations(); // 重新加载剩余次数
     }
   }
 
   return (
-    <div className='flex max-w-6xl mx-auto flex-col items-center justify-center py-2 min-h-screen'>
+    <div className='flex max-w-6xl mx-auto flex-col items-center justify-start py-2 min-h-screen bg-[#F7F4E9]'>
       <Head>
-        <title>修复照片</title>
+        <title>修复照片 - 蓝星照相馆</title>
         <link rel='icon' href='/favicon.ico' />
       </Head>
 
       <Header />
-      <main className='flex flex-1 w-full flex-col items-center justify-center text-center px-4 mt-4 sm:mb-0 mb-8'>
+      <main className='flex flex-1 w-full flex-col items-center justify-start text-center px-4 pt-16 pb-4'>
+        {/* 大图预览模态框 */}
+        <div 
+          id="preview-modal"
+          className="hidden fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              document.getElementById('preview-modal')?.classList.add('hidden');
+            }
+          }}
+        >
+          <button 
+            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-10"
+            onClick={() => document.getElementById('preview-modal')?.classList.add('hidden')}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          
+          <div className="relative max-w-5xl max-h-[90vh] flex flex-col items-center">
+            <img 
+              src={restoredImage || ''} 
+              alt="大图预览" 
+              className="max-w-full max-h-[80vh] object-contain"
+            />
+            <button 
+              className="mt-6 bg-white text-black rounded-lg px-6 py-3 font-medium hover:bg-gray-100 transition-colors flex items-center gap-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (restoredImage) {
+                  downloadPhoto(restoredImage, appendNewToName(photoName || 'restored-photo'));
+                }
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              下载图片
+            </button>
+          </div>
+        </div>
         
-        <h1 className='mx-auto max-w-4xl font-display text-4xl font-bold tracking-normal text-slate-900 sm:text-6xl mb-5'>
-          请上传您想要修复的照片
+        <h1 className='mx-auto max-w-4xl font-display text-3xl sm:text-5xl font-bold tracking-normal text-slate-900 mb-3'>
+          用AI修复你的旧照片
         </h1>
+        <p className='mx-auto text-base sm:text-lg text-slate-600 mb-6'>
+          PHOTO RESTORATION
+        </p>
+        
+        {/* 模型选择区域 - 始终显示，不依赖于是否上传照片 */}
+        <div className='w-full max-w-md mb-6'>
+          <div className='bg-white rounded-2xl p-4 sm:p-6 shadow-lg border-2 border-[#E8DEBB]'>
+            <h3 className='text-lg font-medium mb-4 text-slate-700'>选择AI模型</h3>
+            <div className='flex flex-wrap gap-3 justify-center mb-4'>
+              <button
+                className={`px-4 py-2 rounded-lg font-medium transition ${selectedModel === 'replicate' 
+                  ? 'bg-black text-white shadow-md' 
+                  : 'bg-[#F7F4E9] text-slate-700 border border-[#E8DEBB] hover:bg-[#FCF7E3]'}`}
+                onClick={() => setSelectedModel('replicate')}
+                disabled={loading}
+                title="Replicate - 开源模型，响应速度较快"
+              >
+                Replicate
+              </button>
+              <button
+                className={`px-4 py-2 rounded-lg font-medium transition ${selectedModel === 'ark' 
+                  ? 'bg-black text-white shadow-md' 
+                  : 'bg-[#F7F4E9] text-slate-700 border border-[#E8DEBB] hover:bg-[#FCF7E3]'}`}
+                onClick={() => setSelectedModel('ark')}
+                disabled={loading}
+                title="方舟SDK - 豆包官方AI模型，细节还原更自然"
+              >
+                方舟SDK
+              </button>
+            </div>
+            <p className='text-xs text-slate-600 text-left leading-relaxed'>
+              * 方舟SDK: 豆包官方AI模型，色彩还原度高，细节更自然<br/>
+              * Replicate: 开源模型，响应速度较快<br/>
+              * 当首选模型调用失败时，系统会自动尝试备选模型
+            </p>
+          </div>
+        </div>
+        
+        {/* 模型切换信息提示 */}
+        {modelSwitchMessage && (
+          <div className="bg-blue-50 border-2 border-blue-200 text-blue-700 px-4 py-3 rounded-xl mb-6 max-w-md shadow-sm">
+            <strong>提示：</strong> {modelSwitchMessage}
+          </div>
+        )}
+        
+        {/* 使用的模型信息 */}
+        {usedModel && (
+          <div className="mt-4 text-sm text-gray-600 bg-white px-4 py-2 rounded-lg border border-[#E8DEBB] inline-block">
+            使用模型: <span className="font-medium">{usedModel}</span>
+          </div>
+        )}
+        
         <div className='flex justify-between items-center w-full flex-col mt-4'>
           <Toggle
             className={`${restoredLoaded ? 'visible mb-6' : 'invisible'}`}
@@ -121,65 +284,118 @@ const Home: NextPage = () => {
           )}
           {!originalPhoto && <UploadDropZone />}
           {originalPhoto && !restoredImage && (
-            <Image
-              alt='修复前'
-              src={originalPhoto}
-              className='rounded-2xl'
-              width={475}
-              height={475}
-            />
+            <div className='w-full max-w-4xl'>
+              <div className='bg-[#F7F4E9] rounded-3xl sm:rounded-[40px] p-4 sm:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.1)] border-4 border-[#E8DEBB] relative overflow-hidden'>
+                <div className='absolute inset-0 opacity-30 pointer-events-none'>
+                  <div className='absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#FFF8E0] to-transparent'></div>
+                </div>
+                <div className='relative flex flex-col sm:flex-row gap-4 sm:gap-8'>
+                  <div className='flex-1'>
+                    <h2 className='mb-3 sm:mb-4 font-medium text-base sm:text-lg text-slate-700'>修复前</h2>
+                    <div className='bg-white rounded-2xl sm:rounded-3xl p-2 sm:p-4 shadow-inner border-2 border-[#E8DEBB] overflow-hidden'>
+                      <Image
+                        alt='修复前'
+                        src={originalPhoto}
+                        className='w-full h-auto rounded-xl'
+                        width={475}
+                        height={475}
+                      />
+                    </div>
+                  </div>
+                  <div className='hidden sm:block w-px bg-[#CFC3A7] self-stretch my-4'></div>
+                  <div className='sm:hidden w-full h-px bg-[#CFC3A7] my-2'></div>
+                  <div className='flex-1'>
+                    <h2 className='mb-3 sm:mb-4 font-medium text-base sm:text-lg text-slate-700'>修复后</h2>
+                    <div className='bg-white rounded-2xl sm:rounded-3xl p-2 sm:p-4 shadow-inner border-2 border-[#E8DEBB] min-h-[300px] sm:min-h-[400px] flex items-center justify-center'>
+                      {loading ? (
+                        <LoadingDots color='#666' style='large' />
+                      ) : (
+                        <div className='text-slate-400 text-sm sm:text-base'>正在处理中...</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
           {restoredImage && originalPhoto && !sideBySide && (
-            <div className='flex sm:space-x-4 sm:flex-row flex-col'>
-              <div>
-                <h2 className='mb-1 font-medium text-lg'>修复前</h2>
-                <Image
-                  alt='修复前照片'
-                  src={originalPhoto}
-                  className='rounded-2xl relative'
-                  width={600}
-                  height={600}
-                />
-              </div>
-              <div className='sm:mt-0 mt-8'>
-                <h2 className='mb-1 font-medium text-lg'>修复后照片</h2>
-                <a href={restoredImage} target='_blank' rel='noreferrer'>
-                  <Image
-                    alt='修复后'
-                    src={restoredImage}
-                    className='rounded-2xl relative sm:mt-0 mt-2 cursor-zoom-in'
-                    width={600}
-                    height={600}
-                    onLoadingComplete={() => setRestoredLoaded(true)}
-                  />
-                </a>
+            <div className='w-full max-w-4xl'>
+              <div className='bg-[#F7F4E9] rounded-3xl sm:rounded-[40px] p-4 sm:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.1)] border-4 border-[#E8DEBB] relative overflow-hidden'>
+                {/* 内部装饰效果 */}
+                <div className='absolute inset-0 opacity-30 pointer-events-none'>
+                  <div className='absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#FFF8E0] to-transparent'></div>
+                </div>
+                
+                <div className='relative flex flex-col sm:flex-row gap-4 sm:gap-8'>
+                  {/* 修复前 */}
+                  <div className='flex-1'>
+                    <h2 className='mb-3 sm:mb-4 font-medium text-base sm:text-lg text-slate-700'>修复前</h2>
+                    <div className='bg-white rounded-2xl sm:rounded-3xl p-2 sm:p-4 shadow-inner border-2 border-[#E8DEBB] overflow-hidden'>
+                      <Image
+                        alt='修复前照片'
+                        src={originalPhoto}
+                        className='w-full h-auto rounded-xl'
+                        width={600}
+                        height={600}
+                      />
+                    </div>
+                  </div>
+
+                  {/* 分隔线 */}
+                  <div className='hidden sm:block w-px bg-[#CFC3A7] self-stretch my-4'></div>
+                  <div className='sm:hidden w-full h-px bg-[#CFC3A7] my-2'></div>
+
+                  {/* 修复后 */}
+                  <div className='flex-1'>
+                    <h2 className='mb-3 sm:mb-4 font-medium text-base sm:text-lg text-slate-700'>修复后</h2>
+                    <div
+                      onClick={() => document.getElementById('preview-modal')?.classList.remove('hidden')}
+                      className='bg-white rounded-2xl sm:rounded-3xl p-2 sm:p-4 shadow-inner border-2 border-[#E8DEBB] overflow-hidden cursor-zoom-in relative group'
+                    >
+                      <Image
+                        alt='修复后'
+                        src={restoredImage}
+                        className='w-full h-auto rounded-xl transition-transform group-hover:scale-[1.02]'
+                        width={600}
+                        height={600}
+                        onLoadingComplete={() => setRestoredLoaded(true)}
+                      />
+                      <div className='absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 flex items-center justify-center transition-all duration-200 rounded-xl'>
+                        <svg className='w-10 h-10 text-white opacity-0 group-hover:opacity-100 transition-opacity' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z' />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
           {loading && (
-            <button
-              disabled
-              className='bg-black rounded-full text-white font-medium px-4 pt-2 pb-3 mt-8 hover:bg-black/80 w-40'
-            >
-              <span className='pt-4'>
-                <LoadingDots color='white' style='large' />
-              </span>
-            </button>
+            <div className='mt-8'>
+              <div className='bg-[#F7F4E9] rounded-2xl px-6 py-4 border-2 border-[#E8DEBB] inline-block'>
+                <LoadingDots color='#666' style='large' />
+                <p className='text-sm text-slate-600 mt-2'>正在处理中，请稍候...</p>
+              </div>
+            </div>
           )}
           {error && (
             <div
-              className='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mt-8 max-w-[575px]'
+              className='bg-red-50 border-2 border-red-300 text-red-700 px-6 py-4 rounded-xl mt-8 max-w-[575px] shadow-lg'
               role='alert'
             >
-              <div className='bg-red-500 text-white font-bold rounded-t px-4 py-2'>
-                错误
+              <div className='flex items-center gap-2 mb-2'>
+                <svg className='w-5 h-5' fill='currentColor' viewBox='0 0 20 20'>
+                  <path fillRule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z' clipRule='evenodd' />
+                </svg>
+                <span className='font-bold'>错误</span>
               </div>
-              <div className='border border-t-0 border-red-400 rounded-b bg-red-100 px-4 py-3 text-red-700'>
+              <div className='text-sm whitespace-pre-line'>
                 {error}
               </div>
             </div>
           )}
-          <div className='flex space-x-2 justify-center'>
+          <div className='flex flex-wrap gap-3 justify-center mt-6'>
             {originalPhoto && !loading && (
               <button
                 onClick={() => {
@@ -187,10 +403,36 @@ const Home: NextPage = () => {
                   setRestoredImage(null);
                   setRestoredLoaded(false);
                   setError(null);
+                  setUsedModel(null);
+                  setModelSwitchMessage(null);
                 }}
-                className='bg-black rounded-full text-white font-medium px-4 py-2 mt-8 hover:bg-black/80 transition'
+                className='bg-black rounded-xl text-white font-medium px-6 py-3 hover:bg-black/80 transition shadow-lg'
               >
                 上传新照片
+              </button>
+            )}
+            {restoredLoaded && originalPhoto && (
+              <button
+                onClick={async () => {
+                  // 重置修复结果
+                  setRestoredImage(null);
+                  setRestoredLoaded(false);
+                  setError(null);
+                  setUsedModel(null);
+                  setModelSwitchMessage(null);
+                  
+                  // 等待UI更新后再重新生成
+                  await new Promise(resolve => setTimeout(resolve, 200));
+                  
+                  // 重新生成照片
+                  if (originalPhoto) {
+                    await generatePhoto(originalPhoto);
+                  }
+                }}
+                disabled={loading}
+                className={`bg-white rounded-xl text-slate-700 border-2 border-[#E8DEBB] font-medium px-6 py-3 hover:bg-[#F7F4E9] transition shadow-lg ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                {loading ? '生成中...' : '重新生成'}
               </button>
             )}
             {restoredLoaded && (
@@ -198,7 +440,7 @@ const Home: NextPage = () => {
                 onClick={() => {
                   downloadPhoto(restoredImage!, appendNewToName(photoName!));
                 }}
-                className='bg-white rounded-full text-black border font-medium px-4 py-2 mt-8 hover:bg-gray-100 transition'
+                className='bg-white rounded-xl text-slate-700 border-2 border-[#E8DEBB] font-medium px-6 py-3 hover:bg-[#F7F4E9] transition shadow-lg'
               >
                 下载修复后的照片
               </button>

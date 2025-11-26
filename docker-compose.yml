@@ -1,6 +1,6 @@
 version: '3.8'
 
-# 定义网络，增强容器间通信安全性
+# 定义网络
 networks:
   restorephotos_network:
     driver: bridge
@@ -8,76 +8,65 @@ networks:
 services:
   # 应用服务
   app:
-    build: .
-    restart: always  # 容器崩溃时自动重启
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
     ports:
-      - "3001:3000"
-    depends_on:
-      db:
-        condition: service_healthy  # 确保数据库健康后再启动应用
+      - "${APP_PORT:-3000}:3000"
     environment:
+      # Node.js 环境
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/restorephotos
-      - SHADOW_DATABASE_URL=postgresql://postgres:postgres@db:5432/restorephotos_shadow
+      - NEXT_TELEMETRY_DISABLED=1
+      
+      # Supabase 配置（从环境变量文件读取）
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      
+      # 数据库配置（Supabase）
+      - DATABASE_URL=${DATABASE_URL}
+      - SHADOW_DATABASE_URL=${SHADOW_DATABASE_URL:-${DATABASE_URL}}
+      
+      # Stripe 配置
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - STRIPE_PRICE_BASIC=${STRIPE_PRICE_BASIC}
+      - STRIPE_PRICE_VIP=${STRIPE_PRICE_VIP}
+      
+      # 应用配置
+      - NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
+      
+      # API 密钥
+      - REPLICATE_API_KEY=${REPLICATE_API_KEY}
+      - ARK_API_KEY=${ARK_API_KEY}
+      - NEXT_PUBLIC_UPLOAD_API_KEY=${NEXT_PUBLIC_UPLOAD_API_KEY:-free}
     volumes:
-      - .env:/app/.env:ro
-      - app_logs:/app/logs  # 持久化日志
-      - cache_data:/app/.next/cache  # 持久化Next.js缓存
+      # 只读挂载环境变量文件（如果存在）
+      - ./.env:/app/.env:ro
+      # 日志持久化
+      - app_logs:/app/logs
     networks:
       - restorephotos_network
-    # 健康检查配置
+    # 健康检查
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 60s
     # 资源限制
     deploy:
       resources:
         limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
           cpus: '1'
           memory: 1G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
-  
-  # 数据库服务
-  db:
-    image: postgres:14-alpine
-    restart: always
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=restorephotos
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./init-db:/docker-entrypoint-initdb.d  # 数据库初始化脚本
-    ports:
-      - "5432:5432"
-    networks:
-      - restorephotos_network
-    # 健康检查配置
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d restorephotos"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    # 资源限制
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 256M
 
 # 持久化卷定义
 volumes:
-  postgres_data:  # 数据库数据持久化
-    driver: local
-  app_logs:  # 应用日志持久化
-    driver: local
-  cache_data:  # 缓存数据持久化
+  app_logs:
     driver: local

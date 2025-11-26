@@ -303,7 +303,7 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
             sequential_image_generation: "disabled" as const,
             stream: false, // 布尔值
             response_format: "url" as const,
-            watermark: true // 布尔值
+            watermark: false // 布尔值 - 不添加水印
           };
           
           console.log(`开始调用方舟SDK API... (尝试 ${retryCount + 1}/${maxRetries + 1})`);

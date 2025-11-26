@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 module.exports = {
   reactStrictMode: true,
+  // 启用 standalone 输出模式（用于 Docker）
+  output: process.env.DOCKER_BUILD === 'true' ? 'standalone' : undefined,
   images: {
     domains: ["upcdn.io", "replicate.delivery", "lh3.googleusercontent.com"],
     unoptimized: true,
