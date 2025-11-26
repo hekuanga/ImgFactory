@@ -77,6 +77,11 @@ export const supabaseServer: SupabaseClient<Database> = createClient<Database>(
  * @returns Supabase 客户端实例
  */
 export function createServerClient(accessToken?: string): SupabaseClient<Database> {
+  // 确保环境变量已设置（运行时检查）
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing required Supabase environment variables');
+  }
+  
   const client = createClient<Database>(
     supabaseUrl,
     supabaseAnonKey,
