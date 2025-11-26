@@ -388,7 +388,13 @@ async function callReplicate(imageUrl: string): Promise<{ success: boolean; resu
         // 根据状态码提供更具体的错误信息（双语排查提示）
         let errorMessage = `Replicate API错误: ${startResponse.status} ${startResponse.statusText}`;
         if (startResponse.status === 401) {
-          errorMessage = 'Replicate API认证失败：请检查 REPLICATE_API_KEY 是否正确\nAuthentication failed: Please check REPLICATE_API_KEY';
+          console.error('Replicate API 认证失败详情:');
+          console.error('  - API Key 是否存在:', !!replicateApiKey);
+          console.error('  - API Key 长度:', replicateApiKey?.length || 0);
+          console.error('  - API Key 格式检查:', replicateApiKey?.startsWith('r8_') ? '✓ 正确格式 (r8_开头)' : '✗ 格式错误 (应以 r8_ 开头)');
+          console.error('  - API Key 前缀:', replicateApiKey?.substring(0, 10) || 'N/A');
+          console.error('  - 错误响应:', errorDetailText);
+          errorMessage = 'Replicate API认证失败：请检查 REPLICATE_API_KEY 是否正确配置\nAuthentication failed: Please check REPLICATE_API_KEY\n提示：Replicate API Key 应以 "r8_" 开头，请确认环境变量已正确设置';
         } else if (startResponse.status === 403) {
           errorMessage = 'Replicate API权限不足：请检查 API 密钥权限\nForbidden: Please check API key permissions';
         } else if (startResponse.status === 400 || startResponse.status === 422) {
