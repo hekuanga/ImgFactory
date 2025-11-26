@@ -75,11 +75,18 @@ const Home: NextPage = () => {
       if (file.size > maxFileSize) {
         const maxSizeStr = formatFileSize(maxFileSize);
         const errorMsg = language === 'zh' 
-          ? `图片大小不能超过${maxSizeStr}`
-          : `Image size cannot exceed ${maxSizeStr}`;
-        setError(errorMsg);
+          ? `图片大小不能超过${maxSizeStr}。请压缩图片或创建 Bytescale 账户以上传更大的文件。`
+          : `Image size cannot exceed ${maxSizeStr}. Please compress the image or create a Bytescale account to upload larger files.`;
+        // 使用 setTimeout 确保错误消息在组件更新后显示
+        setTimeout(() => {
+          setError(errorMsg);
+        }, 100);
         return { errorMessage: errorMsg };
       }
+      // 清除之前的错误
+      setTimeout(() => {
+        setError(null);
+      }, 100);
       return undefined;
     },
   };
@@ -105,30 +112,8 @@ const Home: NextPage = () => {
         <div className='relative z-10'>
           <UploadDropzone
             options={options}
-            onUpdate={({ uploadedFiles, failedFiles }) => {
-              // 检查是否有失败的文件
-              if (failedFiles && failedFiles.length > 0) {
-                const failedFile = failedFiles[0];
-                let errorMsg = '';
-                
-                // 检查失败原因
-                if (failedFile.error?.message) {
-                  errorMsg = failedFile.error.message;
-                } else if (failedFile.error?.type === 'FILE_TOO_LARGE') {
-                  const maxSizeStr = formatFileSize(maxFileSize);
-                  errorMsg = language === 'zh' 
-                    ? `图片大小不能超过${maxSizeStr}`
-                    : `Image size cannot exceed ${maxSizeStr}`;
-                } else {
-                  const maxSizeStr = formatFileSize(maxFileSize);
-                  errorMsg = language === 'zh' 
-                    ? `上传失败：图片大小不能超过${maxSizeStr}`
-                    : `Upload failed: Image size cannot exceed ${maxSizeStr}`;
-                }
-                
-                setError(errorMsg);
-                console.error('上传失败:', failedFile);
-              } else if (uploadedFiles.length !== 0) {
+            onUpdate={({ uploadedFiles }) => {
+              if (uploadedFiles.length !== 0) {
                 // 清除之前的错误
                 setError(null);
                 
