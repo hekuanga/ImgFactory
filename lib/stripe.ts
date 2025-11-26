@@ -30,8 +30,8 @@ let stripeInstance: Stripe | null = null;
 function initializeStripe(): Stripe {
   if (!stripeInstance) {
     const secretKey = getStripeSecretKey();
+    // 不指定 apiVersion，使用 Stripe SDK 的默认版本，避免类型定义不匹配的问题
     stripeInstance = new Stripe(secretKey, {
-      apiVersion: '2023-10-16', // 使用类型定义支持的 API 版本
       typescript: true,
     });
   }
