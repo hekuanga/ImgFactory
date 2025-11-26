@@ -47,7 +47,7 @@ const Home: NextPage = () => {
 
   const options: UploadWidgetConfig = {
     apiKey: !!process.env.NEXT_PUBLIC_UPLOAD_API_KEY
-      ? process.env.NEXT_PUBLIC_UPLOAD_API_KEY
+      ? (process.env.NEXT_PUBLIC_UPLOAD_API_KEY as string)
       : 'free',
     maxFileCount: 1,
     mimeTypes: ['image/jpeg', 'image/png', 'image/jpg'],

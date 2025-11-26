@@ -103,7 +103,7 @@ async function callArkSDK(imageUrl: string): Promise<{ success: boolean; result?
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.ARK_API_KEY}`,
+          'Authorization': `Bearer ${process.env.ARK_API_KEY || ''}`,
           'Idempotency-Key': idempotencyKey // 保证幂等性
         },
         body: JSON.stringify(requestData),
@@ -326,7 +326,7 @@ async function callReplicate(imageUrl: string): Promise<{ success: boolean; resu
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.REPLICATE_API_KEY}`,
+          'Authorization': `Bearer ${process.env.REPLICATE_API_KEY || ''}`,
           'Prefer': 'wait'
         },
         body: JSON.stringify(requestData),
@@ -623,7 +623,9 @@ export default async function handler(
     const endTime = Date.now();
     console.log(`照片修复完成，耗时: ${endTime - startTime}ms`);
     console.log('使用模型:', finalResult.usedModel);
-    console.log('最终返回的图片URL:', finalResult.imageUrl.substring(0, 150));
+    if (finalResult.imageUrl) {
+      console.log('最终返回的图片URL:', finalResult.imageUrl.substring(0, 150));
+    }
     console.log('===== 照片修复请求完成 =====');
     
     // 返回完整的响应对象

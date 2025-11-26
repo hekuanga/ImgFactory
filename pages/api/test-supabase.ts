@@ -39,7 +39,7 @@ export default async function handler(
     const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     const clientConfig = {
-      url: supabaseUrl ? `${supabaseUrl.substring(0, 30)}...` : 'Not set',
+      url: supabaseUrl ? `${(supabaseUrl as string).substring(0, 30)}...` : 'Not set',
       hasAnonKey: !!supabaseAnonKey,
       hasServiceRoleKey: !!supabaseServiceRoleKey,
     };

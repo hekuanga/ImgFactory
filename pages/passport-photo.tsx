@@ -42,7 +42,7 @@ const PassportPhoto: NextPage = () => {
   // Bytescale 上传配置 - 与修复页面相同
   const options: UploadWidgetConfig = {
     apiKey: !!process.env.NEXT_PUBLIC_UPLOAD_API_KEY
-      ? process.env.NEXT_PUBLIC_UPLOAD_API_KEY
+      ? (process.env.NEXT_PUBLIC_UPLOAD_API_KEY as string)
       : 'free',
     maxFileCount: 1,
     mimeTypes: ['image/jpeg', 'image/png', 'image/jpg'],

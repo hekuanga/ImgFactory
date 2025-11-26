@@ -365,7 +365,7 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${process.env.ARK_API_KEY}`,
+              'Authorization': `Bearer ${process.env.ARK_API_KEY || ''}`,
               'Idempotency-Key': idempotencyKey // 保证幂等性
             },
             body: JSON.stringify(requestData),
@@ -651,7 +651,7 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + process.env.REPLICATE_API_KEY,
+            'Authorization': 'Bearer ' + (process.env.REPLICATE_API_KEY || ''),
             'Prefer': 'wait' // 等待结果返回，而不是异步
           },
           body: JSON.stringify(requestData),
@@ -782,7 +782,7 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
           } else if (error.message.includes('429')) {
             detailedMessage = '请求频率限制，请稍后再试';
           } else {
-            detailedMessage = `Replicate错误: ${error.message.substring(0, 100)}`;
+            detailedMessage = `Replicate错误: ${error.message ? error.message.substring(0, 100) : '未知错误'}`;
           }
         }
         
