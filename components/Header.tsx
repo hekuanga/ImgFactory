@@ -130,9 +130,9 @@ export default function Header() {
         </div>
       )}
         {/* 导航栏容器 */}
-        <div className='flex justify-between items-center w-full pt-6 pb-5 sm:pt-8 sm:pb-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto'>
+        <div className='flex justify-between items-center w-full pt-6 pb-5 sm:pt-8 sm:pb-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex-wrap gap-3'>
           {/* 左侧导航按钮 */}
-          <nav className='flex items-center gap-2 sm:gap-3 lg:gap-4 xl:gap-6 flex-1 justify-center sm:justify-start'>
+          <nav className='flex items-center gap-1.5 sm:gap-2 lg:gap-3 xl:gap-4 flex-1 justify-center sm:justify-start flex-wrap'>
             {/* 蓝星照相馆 Logo */}
             <Link href='/' className='relative block'>
               <button
@@ -177,16 +177,17 @@ export default function Header() {
           <Link href='/' className='relative block mx-1 sm:mx-2 lg:mx-3'>
             <button
               className={`
-                relative px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3
+                relative px-3 sm:px-4 lg:px-5 xl:px-6 py-2 sm:py-2.5 lg:py-3
                 bg-[#F7F4E9] dark:bg-slate-800 rounded-[20px] sm:rounded-[22px] lg:rounded-[24px]
                 border-[3px] sm:border-[4px] border-[#CFC3A7] dark:border-slate-600
-                text-slate-900 dark:text-slate-100 font-medium text-sm sm:text-base lg:text-lg
+                text-slate-900 dark:text-slate-100 font-medium text-xs sm:text-sm lg:text-base
                 transition-all duration-200
                 hover:scale-105 hover:shadow-md
                 ${isActive('/') ? 'opacity-100 shadow-sm' : 'opacity-90'}
                 before:absolute before:inset-0 before:rounded-[20px] sm:before:rounded-[22px] lg:before:rounded-[24px]
                 before:bg-gradient-to-br before:from-[#FFF8E0]/30 before:to-transparent
                 before:pointer-events-none
+                whitespace-nowrap
               `}
             >
               <span className='relative z-10'>{t.nav.home}</span>
@@ -197,16 +198,17 @@ export default function Header() {
           <Link href='/restore' className='relative block'>
             <button
               className={`
-                relative px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3
+                relative px-3 sm:px-4 lg:px-5 xl:px-6 py-2 sm:py-2.5 lg:py-3
                 bg-[#F7F4E9] dark:bg-slate-800 rounded-[20px] sm:rounded-[22px] lg:rounded-[24px]
                 border-[3px] sm:border-[4px] border-[#CFC3A7] dark:border-slate-600
-                text-slate-900 dark:text-slate-100 font-medium text-sm sm:text-base lg:text-lg
+                text-slate-900 dark:text-slate-100 font-medium text-xs sm:text-sm lg:text-base
                 transition-all duration-200
                 hover:scale-105 hover:shadow-md
                 ${isActive('/restore') ? 'opacity-100 shadow-sm' : 'opacity-90'}
                 before:absolute before:inset-0 before:rounded-[20px] sm:before:rounded-[22px] lg:before:rounded-[24px]
                 before:bg-gradient-to-br before:from-[#FFF8E0]/30 before:to-transparent
                 before:pointer-events-none
+                whitespace-nowrap
               `}
             >
               <span className='relative z-10'>{t.nav.restore}</span>
@@ -217,16 +219,17 @@ export default function Header() {
           <Link href='/passport-photo' className='relative block'>
             <button
               className={`
-                relative px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3
+                relative px-3 sm:px-4 lg:px-5 xl:px-6 py-2 sm:py-2.5 lg:py-3
                 bg-[#F7F4E9] dark:bg-slate-800 rounded-[20px] sm:rounded-[22px] lg:rounded-[24px]
                 border-[3px] sm:border-[4px] border-[#CFC3A7] dark:border-slate-600
-                text-slate-900 dark:text-slate-100 font-medium text-sm sm:text-base lg:text-lg
+                text-slate-900 dark:text-slate-100 font-medium text-xs sm:text-sm lg:text-base
                 transition-all duration-200
                 hover:scale-105 hover:shadow-md
                 ${isActive('/passport-photo') ? 'opacity-100 shadow-sm' : 'opacity-90'}
                 before:absolute before:inset-0 before:rounded-[20px] sm:before:rounded-[22px] lg:before:rounded-[24px]
                 before:bg-gradient-to-br before:from-[#FFF8E0]/30 before:to-transparent
                 before:pointer-events-none
+                whitespace-nowrap
               `}
             >
               <span className='relative z-10'>{t.nav.passportPhoto}</span>
@@ -235,7 +238,7 @@ export default function Header() {
         </nav>
 
         {/* 用户操作区域 - 右侧 */}
-        <div className='flex items-center gap-2 sm:gap-3 lg:gap-4 flex-shrink-0'>
+        <div className='flex items-center gap-1.5 sm:gap-2 lg:gap-3 flex-shrink-0 flex-wrap justify-end'>
           {/* 语言和主题切换按钮 */}
           <LanguageToggle />
           <ThemeToggle />
@@ -245,27 +248,27 @@ export default function Header() {
           ) : user ? (
             <>
               {/* 邮箱地址 - 完全融入背景 */}
-              <div className='text-xs sm:text-sm text-slate-700 dark:text-slate-300 hidden lg:block whitespace-nowrap max-w-[240px] truncate'>
+              <div className='text-xs sm:text-sm text-slate-700 dark:text-slate-300 hidden xl:block whitespace-nowrap max-w-[200px] sm:max-w-[240px] truncate'>
                 {user.email}
               </div>
               {isSubscribed && (
                 <button
                   onClick={handleManageSubscription}
                   disabled={portalLoading || checkingSubscription}
-                  className='text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap'
+                  className='text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap'
                 >
                   {portalLoading ? t.user.processing : t.user.manageSubscription}
                 </button>
               )}
               <Link
                 href='/billing'
-                className='text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition whitespace-nowrap'
+                className='text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition whitespace-nowrap'
               >
                 {t.user.subscribe}
               </Link>
               <button
                 onClick={handleSignOut}
-                className='text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition whitespace-nowrap'
+                className='text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition whitespace-nowrap'
               >
                 {t.user.logout}
               </button>
@@ -274,13 +277,13 @@ export default function Header() {
             <>
               <Link
                 href='/login'
-                className='text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition whitespace-nowrap'
+                className='text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition whitespace-nowrap'
               >
                 {t.user.login}
               </Link>
               <Link
                 href='/register'
-                className='text-xs sm:text-sm font-medium bg-black dark:bg-white text-white dark:text-black rounded-lg hover:bg-black/80 dark:hover:bg-white/80 transition whitespace-nowrap shadow-md px-3 py-1.5'
+                className='text-xs font-medium bg-black dark:bg-white text-white dark:text-black rounded-lg hover:bg-black/80 dark:hover:bg-white/80 transition whitespace-nowrap shadow-md px-2.5 sm:px-3 py-1.5'
               >
                 {t.user.register}
               </Link>

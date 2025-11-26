@@ -217,10 +217,10 @@ const Home: NextPage = () => {
           </div>
         </div>
         
-        <h1 className='mx-auto max-w-4xl font-display text-3xl sm:text-5xl font-bold tracking-normal text-slate-900 dark:text-slate-100 mb-3 transition-colors duration-300'>
+        <h1 className='mx-auto max-w-5xl font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-normal text-slate-900 dark:text-slate-100 mb-3 transition-colors duration-300 leading-tight px-4'>
           {t.restore.title}
         </h1>
-        <p className='mx-auto text-base sm:text-lg text-slate-600 dark:text-slate-400 mb-6 transition-colors duration-300'>
+        <p className='mx-auto max-w-3xl text-sm sm:text-base lg:text-lg text-slate-600 dark:text-slate-400 mb-6 transition-colors duration-300 px-4'>
           {t.home.subtitle}
         </p>
         
