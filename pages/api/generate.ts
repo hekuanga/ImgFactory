@@ -44,12 +44,11 @@ async function callArkSDK(imageUrl: string): Promise<{ success: boolean; result?
   while (retryCount <= maxRetries) {
     try {
         // 构建方舟SDK请求参数（参考证件照生成API的格式）
-        // 优化提示词：简化描述，降低敏感内容检测误判率，专注于照片修复核心功能
-        const prompt = `照片修复，色彩还原，高清细节，自然真实，保持原图风格，修复划痕破损，增强清晰度，完整保留原图内容`;
+        // 极简提示词：最小化描述，最大程度降低敏感内容检测误判率
+        const prompt = `restore photo, enhance quality, color correction`;
         
-        // 添加负面提示词，帮助避免敏感内容检测
-        // 简化负面提示词，避免过多描述可能触发检测的词汇
-        const negativePrompt = '相框、边框、装饰、滤镜、文字、水印、logo、背景杂乱、过度美颜、塑料质感、磨皮严重、AI痕迹、艺术风格化、面部比例失真、低分辨率、模糊、text, watermark, busy background, beauty filter, airbrushed, AI enhancement, plastic look, stylized portrait, distorted features, low resolution';
+        // 最小化负面提示词，只保留最核心的避免项
+        const negativePrompt = 'frame, border, decoration, filter, text, watermark, logo, blur, low resolution';
         
         // 将negative_prompt融入到prompt中（与证件照生成API格式一致）
         const fullPrompt = `${prompt} ${negativePrompt ? `Negative prompt: ${negativePrompt}` : ''}`;
