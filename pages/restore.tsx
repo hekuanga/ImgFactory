@@ -178,8 +178,26 @@ const Home: NextPage = () => {
 
       let response = await res.json();
       if (res.status !== 200) {
-        // 直接使用响应内容作为错误消息，因为API返回的是错误字符串
-        setError(response || '照片修复失败，请稍后再试。');
+        // 处理错误响应
+        let errorMsg = '照片修复失败，请稍后再试。';
+        if (typeof response === 'string') {
+          errorMsg = response;
+        } else if (response?.error) {
+          errorMsg = typeof response.error === 'string' ? response.error : '照片修复失败，请稍后再试。';
+        }
+        
+        // 检查是否是敏感内容检测错误
+        if (errorMsg.includes('敏感内容') || errorMsg.includes('sensitive content')) {
+          errorMsg = language === 'zh' 
+            ? '图片内容检测：系统检测到图片可能包含敏感内容，无法进行处理。请尝试使用其他图片。'
+            : 'Image content detected: The system detected that the image may contain sensitive content and cannot be processed. Please try using a different image.';
+        } else if (errorMsg.includes('认证失败') || errorMsg.includes('Authentication failed')) {
+          errorMsg = language === 'zh'
+            ? 'API 认证失败：请检查服务器配置。'
+            : 'API authentication failed: Please check server configuration.';
+        }
+        
+        setError(errorMsg);
       } else {
         // 检查响应类型
         if (typeof response === 'string') {
