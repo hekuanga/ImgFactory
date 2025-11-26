@@ -43,15 +43,12 @@ async function callArkSDK(imageUrl: string): Promise<{ success: boolean; result?
   
   while (retryCount <= maxRetries) {
     try {
-        // 构建方舟SDK请求参数（参考证件照生成API的格式）
-        // 极简提示词：最小化描述，最大程度降低敏感内容检测误判率
-        const prompt = `restore photo, enhance quality, color correction`;
+        // 构建方舟SDK请求参数
+        // 恢复到最初版本：不使用负面提示词，避免触发敏感内容检测
+        const prompt = `专业照片修复和色彩还原，高清细节，自然真实的色彩还原，准确还原原始色彩和色调，保持照片的原始风格和时代特征，现代感处理，去除老化痕迹，修复划痕和破损，增强清晰度，保持照片完整性，不裁切，完整保留原图主体内容`;
         
-        // 最小化负面提示词，只保留最核心的避免项
-        const negativePrompt = 'frame, border, decoration, filter, text, watermark, logo, blur, low resolution';
-        
-        // 将negative_prompt融入到prompt中（与证件照生成API格式一致）
-        const fullPrompt = `${prompt} ${negativePrompt ? `Negative prompt: ${negativePrompt}` : ''}`;
+        // 不使用负面提示词，避免触发敏感内容检测误判
+        const fullPrompt = prompt;
       
       const requestData = {
         model: "doubao-seedream-4-0-250828",
