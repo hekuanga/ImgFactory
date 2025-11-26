@@ -82,9 +82,10 @@ export function createServerClient(accessToken?: string): SupabaseClient<Databas
     throw new Error('Missing required Supabase environment variables');
   }
   
+  // 使用类型断言，因为我们已经检查过这些值不会是 undefined
   const client = createClient<Database>(
-    supabaseUrl,
-    supabaseAnonKey,
+    supabaseUrl as string,
+    supabaseAnonKey as string,
     {
       auth: {
         autoRefreshToken: false,
