@@ -34,6 +34,7 @@ export const zh = {
     download: '下载',
     loading: '处理中...',
     error: '发生错误',
+    fileSizeExceeded: '图片大小不能超过20MB',
   },
   // 证件照页面
   passportPhoto: {
@@ -45,6 +46,7 @@ export const zh = {
     uploadPhoto: '上传照片',
     generate: '生成',
     loading: '生成中...',
+    fileSizeExceeded: '图片大小不能超过20MB',
   },
   // 通用
   common: {

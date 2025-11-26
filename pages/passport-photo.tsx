@@ -14,8 +14,10 @@ import Header from '../components/Header';
 import LoadingDots from '../components/LoadingDots';
 import appendNewToName from '../utils/appendNewToName';
 import downloadPhoto from '../utils/downloadPhoto';
+import { useTranslation } from '../hooks/useTranslation';
 
 const PassportPhoto: NextPage = () => {
+  const { t } = useTranslation();
   // 状态管理
   const [originalPhoto, setOriginalPhoto] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null); // 添加文件对象状态
@@ -61,8 +63,9 @@ const PassportPhoto: NextPage = () => {
     ): Promise<UploadWidgetOnPreUploadResult | undefined> => {
       // 检查文件大小（限制20MB）
       if (file.size > 20 * 1024 * 1024) {
-        setError('图片大小不能超过20MB');
-        return { errorMessage: '图片大小不能超过20MB' };
+        const errorMsg = t.passportPhoto.fileSizeExceeded;
+        setError(errorMsg);
+        return { errorMessage: errorMsg };
       }
       return undefined;
     },
@@ -165,7 +168,7 @@ const PassportPhoto: NextPage = () => {
     
     // 检查文件大小（限制20MB）
     if (file.size > 20 * 1024 * 1024) {
-      setError('图片大小不能超过20MB');
+      setError(t.passportPhoto.fileSizeExceeded);
       return;
     }
     
@@ -364,7 +367,7 @@ const PassportPhoto: NextPage = () => {
         console.log('原始文件大小:', (photoFile.size / 1024 / 1024).toFixed(2), 'MB');
         
         if (photoFile.size > 20 * 1024 * 1024) { // 20MB限制
-          setError('图片文件过大，请使用小于20MB的图片');
+          setError(t.passportPhoto.fileSizeExceeded);
           setLoading(false);
           return;
         }
@@ -423,8 +426,8 @@ const PassportPhoto: NextPage = () => {
           // 可能是 multer 或其他中间件的错误消息
           console.error('响应不是有效的 JSON:', text);
           response = { 
-            error: text.includes('Body exceeded') 
-              ? '文件大小超过限制（最大 20MB），请压缩图片后重试'
+            error: text.includes('Body exceeded') || text.includes('LIMIT_FILE_SIZE')
+              ? t.passportPhoto.fileSizeExceeded
               : text || '服务器返回了非 JSON 格式的响应'
           };
         }

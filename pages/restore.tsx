@@ -68,8 +68,9 @@ const Home: NextPage = () => {
     ): Promise<UploadWidgetOnPreUploadResult | undefined> => {
       // 检查文件大小（限制20MB）
       if (file.size > 20 * 1024 * 1024) {
-        setError('图片大小不能超过20MB');
-        return { errorMessage: '图片大小不能超过20MB' };
+        const errorMsg = t.restore.fileSizeExceeded;
+        setError(errorMsg);
+        return { errorMessage: errorMsg };
       }
       return undefined;
     },

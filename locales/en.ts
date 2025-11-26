@@ -34,6 +34,7 @@ export const en = {
     download: 'Download',
     loading: 'Processing...',
     error: 'An error occurred',
+    fileSizeExceeded: 'Image size cannot exceed 20MB',
   },
   // Passport photo page
   passportPhoto: {
@@ -45,6 +46,7 @@ export const en = {
     uploadPhoto: 'Upload Photo',
     generate: 'Generate',
     loading: 'Generating...',
+    fileSizeExceeded: 'Image size cannot exceed 20MB',
   },
   // Common
   common: {
