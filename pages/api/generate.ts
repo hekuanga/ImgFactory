@@ -297,13 +297,24 @@ async function callReplicate(imageUrl: string): Promise<{ success: boolean; resu
   console.log('  - 环境变量存在:', !!replicateApiKey);
   console.log('  - API Key 长度:', replicateApiKey?.length || 0);
   console.log('  - API Key 前缀:', replicateApiKey?.substring(0, 10) || 'N/A');
+  console.log('  - API Key 后缀:', replicateApiKey?.substring(replicateApiKey.length - 5) || 'N/A');
   console.log('  - 是否为默认值:', replicateApiKey === 'YOUR_REPLICATE_API_KEY');
+  console.log('  - 是否包含空格:', replicateApiKey?.includes(' ') || false);
+  console.log('  - 是否包含换行符:', replicateApiKey?.includes('\n') || replicateApiKey?.includes('\r') || false);
   
   if (!replicateApiKey || replicateApiKey === 'YOUR_REPLICATE_API_KEY' || replicateApiKey.trim() === '') {
     const errorMsg = 'Replicate API密钥未配置或无效';
     console.error(errorMsg);
     console.error('请检查环境变量 REPLICATE_API_KEY 是否正确设置');
     return { success: false, error: errorMsg };
+  }
+  
+  // 清理 API Key（移除可能的空格和换行符）
+  const cleanedApiKey = replicateApiKey.trim().replace(/\s+/g, '');
+  if (cleanedApiKey !== replicateApiKey) {
+    console.warn('警告：API Key 包含空格或换行符，已自动清理');
+    console.warn('  - 原始长度:', replicateApiKey.length);
+    console.warn('  - 清理后长度:', cleanedApiKey.length);
   }
   
   // 开发环境优化
@@ -315,12 +326,15 @@ async function callReplicate(imageUrl: string): Promise<{ success: boolean; resu
     try {
       // 构建请求参数（参考证件照生成API的格式）
       // 添加正向提示词参数，确保图片完整性
+      // 注意：根据 Replicate 文档，restore-image 模型可能不支持 prompt 参数
+      // 如果遇到错误，可以尝试移除 prompt 参数
       const requestData = {
         input: { 
           input_image: imageUrl, 
-            output_format: 'png', 
-            safety_tolerance: 2,
-            prompt: '专业照片修复和色彩还原，高清细节，自然真实的色彩还原，准确还原原始色彩和色调，保持照片的原始风格和时代特征，现代感处理，去除老化痕迹，修复划痕和破损，增强清晰度，保持照片完整性，不裁切，完整保留原图主体内容'
+          output_format: 'png', 
+          safety_tolerance: 2
+          // 暂时移除 prompt 参数，因为 restore-image 模型可能不支持
+          // prompt: '专业照片修复和色彩还原，高清细节，自然真实的色彩还原，准确还原原始色彩和色调，保持照片的原始风格和时代特征，现代感处理，去除老化痕迹，修复划痕和破损，增强清晰度，保持照片完整性，不裁切，完整保留原图主体内容'
         },
       };
       
@@ -345,12 +359,13 @@ async function callReplicate(imageUrl: string): Promise<{ success: boolean; resu
       
       const startTime = Date.now();
       
-      // 构建 Authorization header
-      const authHeader = `Bearer ${replicateApiKey}`;
+      // 构建 Authorization header（使用清理后的 API Key）
+      const authHeader = `Bearer ${cleanedApiKey}`;
       console.log('Replicate API 请求详情:');
       console.log('  - API URL:', apiUrl);
       console.log('  - Authorization Header 前缀:', authHeader.substring(0, 20) + '...');
-      console.log('  - API Key 格式检查:', replicateApiKey.startsWith('r8_') ? '✓ 正确格式 (r8_开头)' : '✗ 可能格式错误 (应以 r8_ 开头)');
+      console.log('  - API Key 格式检查:', cleanedApiKey.startsWith('r8_') ? '✓ 正确格式 (r8_开头)' : '✗ 可能格式错误 (应以 r8_ 开头)');
+      console.log('  - 使用的 API Key 长度:', cleanedApiKey.length);
       
       let startResponse = await fetch(apiUrl, {
         method: 'POST',
