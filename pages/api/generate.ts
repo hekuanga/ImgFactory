@@ -344,11 +344,19 @@ async function callReplicate(imageUrl: string): Promise<{ success: boolean; resu
       }, 120000); // 120秒超时
       
       const startTime = Date.now();
+      
+      // 构建 Authorization header
+      const authHeader = `Bearer ${replicateApiKey}`;
+      console.log('Replicate API 请求详情:');
+      console.log('  - API URL:', apiUrl);
+      console.log('  - Authorization Header 前缀:', authHeader.substring(0, 20) + '...');
+      console.log('  - API Key 格式检查:', replicateApiKey.startsWith('r8_') ? '✓ 正确格式 (r8_开头)' : '✗ 可能格式错误 (应以 r8_ 开头)');
+      
       let startResponse = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.REPLICATE_API_KEY || ''}`,
+          'Authorization': authHeader,
           'Prefer': 'wait'
         },
         body: JSON.stringify(requestData),
