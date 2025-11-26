@@ -47,8 +47,9 @@ async function callArkSDK(imageUrl: string): Promise<{ success: boolean; result?
         // 优化提示词：提升颜色还原准确性，避免陈旧感，保持现代自然效果
         const prompt = `专业照片修复和色彩还原，高清细节，自然真实的色彩还原，准确还原原始色彩和色调，保持照片的原始风格和时代特征，现代感处理，去除老化痕迹，修复划痕和破损，增强清晰度，保持照片完整性，不裁切，完整保留原图主体内容`;
         
-        // 添加负面提示词，帮助避免敏感内容检测（与证件照生成API保持一致）
-        const negativePrompt = '敏感内容、不当内容、裸露、暴力、色情、低俗、违法内容、政治敏感、宗教敏感、种族歧视、仇恨言论、危险行为、武器、毒品、赌博、诈骗、虚假信息、恶意内容、spam, inappropriate content, nudity, violence, explicit content, illegal content, sensitive content, offensive content';
+        // 添加负面提示词，帮助避免敏感内容检测（与证件照生成API保持一致，避免使用可能触发检测的敏感词）
+        // 注意：负面提示词中避免直接提及敏感词，而是描述要避免的视觉特征
+        const negativePrompt = '相框、边框、装饰、滤镜、文字、水印、logo、背景杂乱或渐变、光影不均、过度美颜、塑料质感、磨皮严重、无毛孔皮肤、发光肤色、AI痕迹、艺术风格化、面部比例失真、夸张妆容、低分辨率、虚化或模糊区域、beauty filter, retouched skin, airbrushed, AI enhancement, over-smooth skin, plastic look, poreless skin, face morphing, unrealistic perfection, makeup, glowing skin, stylized portrait, inconsistent face, distorted features, uneven lighting, low resolution, text, watermark, busy background';
         
         // 将negative_prompt融入到prompt中（与证件照生成API格式一致）
         const fullPrompt = `${prompt} ${negativePrompt ? `Negative prompt: ${negativePrompt}` : ''}`;
@@ -159,6 +160,8 @@ async function callArkSDK(imageUrl: string): Promise<{ success: boolean; result?
           // 检查是否是敏感内容检测错误
           if (errorCode === 'InputImageSensitiveContentDetected') {
             errorMessage = '图片内容检测：系统检测到图片可能包含敏感内容，无法进行处理。请尝试使用其他图片。\nImage content detected: The system detected that the image may contain sensitive content and cannot be processed. Please try using a different image.';
+          } else if (errorCode === 'InputTextSensitiveContentDetected') {
+            errorMessage = '提示词检测：系统检测到提示词可能包含敏感内容。请尝试使用其他图片或联系客服。\nText content detected: The system detected that the prompt may contain sensitive content. Please try using a different image or contact support.';
           } else {
             errorMessage = `方舟SDK API请求格式错误: ${errorDetailText.substring(0, 200)}\nRequest format error: Please check request parameters`;
           }
