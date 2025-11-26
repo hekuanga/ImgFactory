@@ -324,7 +324,7 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
           
           // 检查 DataURL 大小（base64 编码会增加约 33% 的大小）
           const imageDataSize = requestData.image ? requestData.image.length : 0;
-          if (imageDataSize > 10 * 1024 * 1024) { // 约 7.5MB 原始图片
+          if (imageDataSize > 20 * 1024 * 1024) { // 约 15MB 原始图片（20MB base64）
             console.warn(`警告: DataURL 大小较大 (${(imageDataSize / 1024 / 1024).toFixed(2)}MB)，可能导致请求失败`);
           }
           

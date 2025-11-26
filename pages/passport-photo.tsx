@@ -59,7 +59,11 @@ const PassportPhoto: NextPage = () => {
     onPreUpload: async (
       file: File
     ): Promise<UploadWidgetOnPreUploadResult | undefined> => {
-      // 移除NSFW检查，直接允许上传
+      // 检查文件大小（限制20MB）
+      if (file.size > 20 * 1024 * 1024) {
+        setError('图片大小不能超过20MB');
+        return { errorMessage: '图片大小不能超过20MB' };
+      }
       return undefined;
     },
   };
