@@ -317,6 +317,29 @@ async function callReplicate(imageUrl: string): Promise<{ success: boolean; resu
     console.warn('  - 清理后长度:', cleanedApiKey.length);
   }
   
+  // 尝试使用简单的 API 端点验证 API Key（可选，用于调试）
+  // 注意：这会增加一次额外的 API 调用，仅用于诊断
+  if (process.env.NODE_ENV === 'development') {
+    try {
+      const testResponse = await fetch('https://api.replicate.com/v1/account', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${cleanedApiKey}`,
+        },
+      });
+      console.log('Replicate API Key 验证测试:');
+      console.log('  - 测试端点响应状态:', testResponse.status);
+      if (testResponse.status === 401) {
+        console.error('  - ⚠️ API Key 验证失败：Key 可能已过期或被撤销');
+        console.error('  - 建议：请在 Replicate 网站 (https://replicate.com) 重新生成 API Key');
+      } else if (testResponse.status === 200) {
+        console.log('  - ✓ API Key 验证成功');
+      }
+    } catch (testError) {
+      console.warn('  - API Key 验证测试失败（不影响主流程）:', testError instanceof Error ? testError.message : '未知错误');
+    }
+  }
+  
   // 开发环境优化
   const isDev = process.env.NODE_ENV === 'development';
   let retryCount = 0;
