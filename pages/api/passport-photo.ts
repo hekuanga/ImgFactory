@@ -1,12 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createRouter } from 'next-connect';
 import multer from 'multer';
-
-
+import { MAX_FILE_SIZE, formatFileSize } from '../../constants/upload';
 
 // 配置临时存储
 const upload = multer({ 
-  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB限制
+  limits: { fileSize: MAX_FILE_SIZE },
   storage: multer.memoryStorage() // 使用内存存储
 });
 
@@ -27,8 +26,9 @@ apiRoute.use(async (req: any, res: any, next: any) => {
       if (err) {
         // Multer 错误处理，确保返回 JSON 格式
         if (err.code === 'LIMIT_FILE_SIZE') {
+          const maxSizeStr = formatFileSize(MAX_FILE_SIZE);
           return res.status(200).json({ 
-            error: '文件大小超过限制（最大 20MB），请压缩图片后重试',
+            error: `文件大小超过限制（最大 ${maxSizeStr}），请压缩图片后重试`,
             imageUrl: ''
           });
         }

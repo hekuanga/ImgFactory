@@ -16,6 +16,7 @@ import Toggle from '../components/Toggle';
 import appendNewToName from '../utils/appendNewToName';
 import downloadPhoto from '../utils/downloadPhoto';
 import { useTranslation } from '../hooks/useTranslation';
+import { MAX_FILE_SIZE, formatFileSize } from '../constants/upload';
 
 const Home: NextPage = () => {
   const { t, language } = useTranslation();
@@ -66,9 +67,12 @@ const Home: NextPage = () => {
     onPreUpload: async (
       file: File
     ): Promise<UploadWidgetOnPreUploadResult | undefined> => {
-      // 检查文件大小（限制20MB）
-      if (file.size > 20 * 1024 * 1024) {
-        const errorMsg = t.restore.fileSizeExceeded;
+      // 检查文件大小
+      if (file.size > MAX_FILE_SIZE) {
+        const maxSizeStr = formatFileSize(MAX_FILE_SIZE);
+        const errorMsg = language === 'zh' 
+          ? `图片大小不能超过${maxSizeStr}`
+          : `Image size cannot exceed ${maxSizeStr}`;
         setError(errorMsg);
         return { errorMessage: errorMsg };
       }

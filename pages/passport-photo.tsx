@@ -15,9 +15,10 @@ import LoadingDots from '../components/LoadingDots';
 import appendNewToName from '../utils/appendNewToName';
 import downloadPhoto from '../utils/downloadPhoto';
 import { useTranslation } from '../hooks/useTranslation';
+import { MAX_FILE_SIZE, formatFileSize } from '../constants/upload';
 
 const PassportPhoto: NextPage = () => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   // 状态管理
   const [originalPhoto, setOriginalPhoto] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null); // 添加文件对象状态
@@ -61,9 +62,12 @@ const PassportPhoto: NextPage = () => {
     onPreUpload: async (
       file: File
     ): Promise<UploadWidgetOnPreUploadResult | undefined> => {
-      // 检查文件大小（限制20MB）
-      if (file.size > 20 * 1024 * 1024) {
-        const errorMsg = t.passportPhoto.fileSizeExceeded;
+      // 检查文件大小
+      if (file.size > MAX_FILE_SIZE) {
+        const maxSizeStr = formatFileSize(MAX_FILE_SIZE);
+        const errorMsg = language === 'zh' 
+          ? `图片大小不能超过${maxSizeStr}`
+          : `Image size cannot exceed ${maxSizeStr}`;
         setError(errorMsg);
         return { errorMessage: errorMsg };
       }
@@ -166,9 +170,13 @@ const PassportPhoto: NextPage = () => {
       return;
     }
     
-    // 检查文件大小（限制20MB）
-    if (file.size > 20 * 1024 * 1024) {
-      setError(t.passportPhoto.fileSizeExceeded);
+    // 检查文件大小
+    if (file.size > MAX_FILE_SIZE) {
+      const maxSizeStr = formatFileSize(MAX_FILE_SIZE);
+      const errorMsg = language === 'zh' 
+        ? `图片大小不能超过${maxSizeStr}`
+        : `Image size cannot exceed ${maxSizeStr}`;
+      setError(errorMsg);
       return;
     }
     
@@ -366,8 +374,12 @@ const PassportPhoto: NextPage = () => {
         // 检查文件大小
         console.log('原始文件大小:', (photoFile.size / 1024 / 1024).toFixed(2), 'MB');
         
-        if (photoFile.size > 20 * 1024 * 1024) { // 20MB限制
-          setError(t.passportPhoto.fileSizeExceeded);
+        if (photoFile.size > MAX_FILE_SIZE) {
+          const maxSizeStr = formatFileSize(MAX_FILE_SIZE);
+          const errorMsg = language === 'zh' 
+            ? `图片大小不能超过${maxSizeStr}`
+            : `Image size cannot exceed ${maxSizeStr}`;
+          setError(errorMsg);
           setLoading(false);
           return;
         }
@@ -425,9 +437,13 @@ const PassportPhoto: NextPage = () => {
           // 如果解析失败，说明服务器返回的不是 JSON
           // 可能是 multer 或其他中间件的错误消息
           console.error('响应不是有效的 JSON:', text);
+          const maxSizeStr = formatFileSize(MAX_FILE_SIZE);
+          const fileSizeErrorMsg = language === 'zh' 
+            ? `图片大小不能超过${maxSizeStr}`
+            : `Image size cannot exceed ${maxSizeStr}`;
           response = { 
             error: text.includes('Body exceeded') || text.includes('LIMIT_FILE_SIZE')
-              ? t.passportPhoto.fileSizeExceeded
+              ? fileSizeErrorMsg
               : text || '服务器返回了非 JSON 格式的响应'
           };
         }
