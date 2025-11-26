@@ -4,11 +4,15 @@ import { useRouter } from 'next/router';
 import { useAuth } from '../hooks/useAuth';
 import { useBillingPortal } from '../hooks/useBillingPortal';
 import { supabaseClient } from '../lib/supabaseClient';
+import { useTranslation } from '../hooks/useTranslation';
+import ThemeToggle from './ThemeToggle';
+import LanguageToggle from './LanguageToggle';
 
 export default function Header() {
   const router = useRouter();
   const { user, loading, signOut } = useAuth();
   const { openPortal, loading: portalLoading } = useBillingPortal();
+  const { t } = useTranslation();
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [checkingSubscription, setCheckingSubscription] = useState(false);
   const logoButtonRef = useRef<HTMLButtonElement>(null);
@@ -106,7 +110,7 @@ export default function Header() {
   const isActive = (path: string) => router.pathname === path;
 
   return (
-    <header className='relative w-full bg-[#F7F4E9]'>
+    <header className='relative w-full bg-[#F7F4E9] dark:bg-slate-900 transition-colors duration-300'>
       {/* 垂直彩虹色条 - 从页面顶部到Logo按钮顶部（参考Group 1.svg） */}
       {rainbowHeight > 0 && (
         <div 
@@ -135,9 +139,9 @@ export default function Header() {
                 ref={logoButtonRef}
                 className={`
                   relative px-4 sm:px-6 lg:px-8 py-2 sm:py-2.5 lg:py-3
-                  bg-gradient-to-b from-[#F7F4E9] to-[#FCF7E3] rounded-[24px] sm:rounded-[28px] lg:rounded-[32px]
-                  border-[3px] sm:border-[4px] border-[#CFC3A7]
-                  text-slate-900 font-medium text-base sm:text-lg lg:text-xl
+                bg-gradient-to-b from-[#F7F4E9] to-[#FCF7E3] dark:from-slate-800 dark:to-slate-700 rounded-[24px] sm:rounded-[28px] lg:rounded-[32px]
+                border-[3px] sm:border-[4px] border-[#CFC3A7] dark:border-slate-600
+                text-slate-900 dark:text-slate-100 font-medium text-base sm:text-lg lg:text-xl
                   transition-all duration-200
                   hover:scale-105 hover:shadow-lg
                   flex items-center gap-2 sm:gap-3
@@ -165,7 +169,7 @@ export default function Header() {
                     <circle cx='18' cy='7' r='1.5' fill='currentColor'/>
                   </svg>
                 </span>
-                <span className='relative z-10 whitespace-nowrap'>蓝星照相馆</span>
+                <span className='relative z-10 whitespace-nowrap'>{t.nav.studio}</span>
               </button>
             </Link>
 
@@ -174,9 +178,9 @@ export default function Header() {
             <button
               className={`
                 relative px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3
-                bg-[#F7F4E9] rounded-[20px] sm:rounded-[22px] lg:rounded-[24px]
-                border-[3px] sm:border-[4px] border-[#CFC3A7]
-                text-slate-900 font-medium text-sm sm:text-base lg:text-lg
+                bg-[#F7F4E9] dark:bg-slate-800 rounded-[20px] sm:rounded-[22px] lg:rounded-[24px]
+                border-[3px] sm:border-[4px] border-[#CFC3A7] dark:border-slate-600
+                text-slate-900 dark:text-slate-100 font-medium text-sm sm:text-base lg:text-lg
                 transition-all duration-200
                 hover:scale-105 hover:shadow-md
                 ${isActive('/') ? 'opacity-100 shadow-sm' : 'opacity-90'}
@@ -185,7 +189,7 @@ export default function Header() {
                 before:pointer-events-none
               `}
             >
-              <span className='relative z-10'>首页</span>
+              <span className='relative z-10'>{t.nav.home}</span>
             </button>
           </Link>
 
@@ -194,9 +198,9 @@ export default function Header() {
             <button
               className={`
                 relative px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3
-                bg-[#F7F4E9] rounded-[20px] sm:rounded-[22px] lg:rounded-[24px]
-                border-[3px] sm:border-[4px] border-[#CFC3A7]
-                text-slate-900 font-medium text-sm sm:text-base lg:text-lg
+                bg-[#F7F4E9] dark:bg-slate-800 rounded-[20px] sm:rounded-[22px] lg:rounded-[24px]
+                border-[3px] sm:border-[4px] border-[#CFC3A7] dark:border-slate-600
+                text-slate-900 dark:text-slate-100 font-medium text-sm sm:text-base lg:text-lg
                 transition-all duration-200
                 hover:scale-105 hover:shadow-md
                 ${isActive('/restore') ? 'opacity-100 shadow-sm' : 'opacity-90'}
@@ -205,7 +209,7 @@ export default function Header() {
                 before:pointer-events-none
               `}
             >
-              <span className='relative z-10'>照片修复</span>
+              <span className='relative z-10'>{t.nav.restore}</span>
             </button>
           </Link>
 
@@ -214,9 +218,9 @@ export default function Header() {
             <button
               className={`
                 relative px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3
-                bg-[#F7F4E9] rounded-[20px] sm:rounded-[22px] lg:rounded-[24px]
-                border-[3px] sm:border-[4px] border-[#CFC3A7]
-                text-slate-900 font-medium text-sm sm:text-base lg:text-lg
+                bg-[#F7F4E9] dark:bg-slate-800 rounded-[20px] sm:rounded-[22px] lg:rounded-[24px]
+                border-[3px] sm:border-[4px] border-[#CFC3A7] dark:border-slate-600
+                text-slate-900 dark:text-slate-100 font-medium text-sm sm:text-base lg:text-lg
                 transition-all duration-200
                 hover:scale-105 hover:shadow-md
                 ${isActive('/passport-photo') ? 'opacity-100 shadow-sm' : 'opacity-90'}
@@ -225,56 +229,60 @@ export default function Header() {
                 before:pointer-events-none
               `}
             >
-              <span className='relative z-10'>生证件照</span>
+              <span className='relative z-10'>{t.nav.passportPhoto}</span>
             </button>
           </Link>
         </nav>
 
         {/* 用户操作区域 - 右侧 */}
-        <div className='flex items-center gap-4 sm:gap-5 lg:gap-6 flex-shrink-0'>
+        <div className='flex items-center gap-2 sm:gap-3 lg:gap-4 flex-shrink-0'>
+          {/* 语言和主题切换按钮 */}
+          <LanguageToggle />
+          <ThemeToggle />
+          
           {loading ? (
-            <div className='text-xs sm:text-sm text-slate-600 whitespace-nowrap'>加载中...</div>
+            <div className='text-xs sm:text-sm text-slate-600 dark:text-slate-400 whitespace-nowrap'>{t.user.loading}</div>
           ) : user ? (
             <>
               {/* 邮箱地址 - 完全融入背景 */}
-              <div className='text-xs sm:text-sm text-slate-700 hidden lg:block whitespace-nowrap max-w-[240px] truncate'>
+              <div className='text-xs sm:text-sm text-slate-700 dark:text-slate-300 hidden lg:block whitespace-nowrap max-w-[240px] truncate'>
                 {user.email}
               </div>
               {isSubscribed && (
                 <button
                   onClick={handleManageSubscription}
                   disabled={portalLoading || checkingSubscription}
-                  className='text-xs sm:text-sm font-medium text-slate-700 hover:text-slate-900 transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap'
+                  className='text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap'
                 >
-                  {portalLoading ? '处理中...' : '管理订阅'}
+                  {portalLoading ? t.user.processing : t.user.manageSubscription}
                 </button>
               )}
               <Link
                 href='/billing'
-                className='text-xs sm:text-sm font-medium text-slate-700 hover:text-slate-900 transition whitespace-nowrap'
+                className='text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition whitespace-nowrap'
               >
-                订阅
+                {t.user.subscribe}
               </Link>
               <button
                 onClick={handleSignOut}
-                className='text-xs sm:text-sm font-medium text-slate-700 hover:text-slate-900 transition whitespace-nowrap'
+                className='text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition whitespace-nowrap'
               >
-                登出
+                {t.user.logout}
               </button>
             </>
           ) : (
             <>
               <Link
                 href='/login'
-                className='text-xs sm:text-sm font-medium text-slate-700 hover:text-slate-900 transition whitespace-nowrap'
+                className='text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition whitespace-nowrap'
               >
-                登录
+                {t.user.login}
               </Link>
               <Link
                 href='/register'
-                className='text-xs sm:text-sm font-medium bg-black text-white rounded-lg hover:bg-black/80 transition whitespace-nowrap shadow-md px-3 py-1.5'
+                className='text-xs sm:text-sm font-medium bg-black dark:bg-white text-white dark:text-black rounded-lg hover:bg-black/80 dark:hover:bg-white/80 transition whitespace-nowrap shadow-md px-3 py-1.5'
               >
-                注册
+                {t.user.register}
               </Link>
             </>
           )}

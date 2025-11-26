@@ -15,8 +15,10 @@ import LoadingDots from '../components/LoadingDots';
 import Toggle from '../components/Toggle';
 import appendNewToName from '../utils/appendNewToName';
 import downloadPhoto from '../utils/downloadPhoto';
+import { useTranslation } from '../hooks/useTranslation';
 
 const Home: NextPage = () => {
+  const { t, language } = useTranslation();
   const [originalPhoto, setOriginalPhoto] = useState<string | null>(null);
   const [restoredImage, setRestoredImage] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -71,20 +73,20 @@ const Home: NextPage = () => {
 
   const UploadDropZone = () => (
     <div className='w-full max-w-4xl'>
-      {/* 中文提示 */}
-      <div className='text-center mb-4'>
-        <p className='text-base sm:text-lg text-slate-700 font-medium mb-2'>
-          请在此处上传您要修复的照片
-        </p>
-        <p className='text-sm text-slate-500'>
-          支持 JPG、PNG 格式，或直接拖拽图片到下方区域
-        </p>
-      </div>
-      
       {/* 上传组件容器 - 更突出的样式 */}
-      <div className='relative bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-[0_8px_32px_rgba(0,0,0,0.15)] border-4 border-[#E8DEBB]'>
+      <div className='relative bg-white dark:bg-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-[0_8px_32px_rgba(0,0,0,0.15)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] border-4 border-[#E8DEBB] dark:border-slate-700 transition-colors duration-300'>
         {/* 装饰效果 */}
-        <div className='absolute inset-0 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#FFF8E0]/20 to-transparent pointer-events-none'></div>
+        <div className='absolute inset-0 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#FFF8E0]/20 dark:from-slate-700/20 to-transparent pointer-events-none'></div>
+        
+        {/* 中文提示 */}
+        <div className='text-center mb-4 relative z-10'>
+          <p className='text-base sm:text-lg text-slate-700 dark:text-slate-300 font-medium mb-2 transition-colors duration-300'>
+            {t.restore.uploadPhoto}
+          </p>
+          <p className='text-sm text-slate-500 dark:text-slate-400 transition-colors duration-300'>
+            {language === 'zh' ? '支持 JPG、PNG 格式，或直接拖拽图片到下方区域' : 'Supports JPG, PNG formats, or drag and drop images below'}
+          </p>
+        </div>
         
         {/* 上传组件 */}
         <div className='relative z-10'>
@@ -165,9 +167,9 @@ const Home: NextPage = () => {
   }
 
   return (
-    <div className='flex max-w-6xl mx-auto flex-col items-center justify-start py-2 min-h-screen bg-[#F7F4E9]'>
+    <div className='flex max-w-6xl mx-auto flex-col items-center justify-start py-2 min-h-screen bg-[#F7F4E9] dark:bg-slate-900 transition-colors duration-300'>
       <Head>
-        <title>修复照片 - 蓝星照相馆</title>
+        <title>{t.restore.title} - {t.nav.studio}</title>
         <link rel='icon' href='/favicon.ico' />
       </Head>
 
@@ -199,7 +201,7 @@ const Home: NextPage = () => {
               className="max-w-full max-h-[80vh] object-contain"
             />
             <button 
-              className="mt-6 bg-white text-black rounded-lg px-6 py-3 font-medium hover:bg-gray-100 transition-colors flex items-center gap-2"
+              className="mt-6 bg-white dark:bg-slate-800 text-black dark:text-white rounded-lg px-6 py-3 font-medium hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors flex items-center gap-2"
               onClick={(e) => {
                 e.stopPropagation();
                 if (restoredImage) {
@@ -210,27 +212,27 @@ const Home: NextPage = () => {
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
               </svg>
-              下载图片
+              {t.restore.download}
             </button>
           </div>
         </div>
         
-        <h1 className='mx-auto max-w-4xl font-display text-3xl sm:text-5xl font-bold tracking-normal text-slate-900 mb-3'>
-          用AI修复你的旧照片
+        <h1 className='mx-auto max-w-4xl font-display text-3xl sm:text-5xl font-bold tracking-normal text-slate-900 dark:text-slate-100 mb-3 transition-colors duration-300'>
+          {t.restore.title}
         </h1>
-        <p className='mx-auto text-base sm:text-lg text-slate-600 mb-6'>
-          PHOTO RESTORATION
+        <p className='mx-auto text-base sm:text-lg text-slate-600 dark:text-slate-400 mb-6 transition-colors duration-300'>
+          {t.home.subtitle}
         </p>
         
         {/* 模型选择区域 - 始终显示，不依赖于是否上传照片 */}
         <div className='w-full max-w-md mb-6'>
-          <div className='bg-white rounded-2xl p-4 sm:p-6 shadow-lg border-2 border-[#E8DEBB]'>
-            <h3 className='text-lg font-medium mb-4 text-slate-700'>选择AI模型</h3>
+          <div className='bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-6 shadow-lg border-2 border-[#E8DEBB] dark:border-slate-700 transition-colors duration-300'>
+            <h3 className='text-lg font-medium mb-4 text-slate-700 dark:text-slate-300 transition-colors duration-300'>{t.restore.selectModel}</h3>
             <div className='flex flex-wrap gap-3 justify-center mb-4'>
               <button
                 className={`px-4 py-2 rounded-lg font-medium transition ${selectedModel === 'replicate' 
-                  ? 'bg-black text-white shadow-md' 
-                  : 'bg-[#F7F4E9] text-slate-700 border border-[#E8DEBB] hover:bg-[#FCF7E3]'}`}
+                  ? 'bg-black dark:bg-white text-white dark:text-black shadow-md' 
+                  : 'bg-[#F7F4E9] dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-[#E8DEBB] dark:border-slate-600 hover:bg-[#FCF7E3] dark:hover:bg-slate-600'}`}
                 onClick={() => setSelectedModel('replicate')}
                 disabled={loading}
                 title="Replicate - 开源模型，响应速度较快"
@@ -265,7 +267,7 @@ const Home: NextPage = () => {
         
         {/* 使用的模型信息 */}
         {usedModel && (
-          <div className="mt-4 text-sm text-gray-600 bg-white px-4 py-2 rounded-lg border border-[#E8DEBB] inline-block">
+          <div className="mt-4 text-sm text-gray-600 dark:text-slate-400 bg-white dark:bg-slate-800 px-4 py-2 rounded-lg border border-[#E8DEBB] dark:border-slate-600 inline-block transition-colors duration-300">
             使用模型: <span className="font-medium">{usedModel}</span>
           </div>
         )}
@@ -285,14 +287,14 @@ const Home: NextPage = () => {
           {!originalPhoto && <UploadDropZone />}
           {originalPhoto && !restoredImage && (
             <div className='w-full max-w-4xl'>
-              <div className='bg-[#F7F4E9] rounded-3xl sm:rounded-[40px] p-4 sm:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.1)] border-4 border-[#E8DEBB] relative overflow-hidden'>
+              <div className='bg-[#F7F4E9] dark:bg-slate-800 rounded-3xl sm:rounded-[40px] p-4 sm:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.1)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.3)] border-4 border-[#E8DEBB] dark:border-slate-700 relative overflow-hidden transition-colors duration-300'>
                 <div className='absolute inset-0 opacity-30 pointer-events-none'>
-                  <div className='absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#FFF8E0] to-transparent'></div>
+                  <div className='absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#FFF8E0] dark:from-slate-700/30 to-transparent'></div>
                 </div>
                 <div className='relative flex flex-col sm:flex-row gap-4 sm:gap-8'>
                   <div className='flex-1'>
-                    <h2 className='mb-3 sm:mb-4 font-medium text-base sm:text-lg text-slate-700'>修复前</h2>
-                    <div className='bg-white rounded-2xl sm:rounded-3xl p-2 sm:p-4 shadow-inner border-2 border-[#E8DEBB] overflow-hidden'>
+                    <h2 className='mb-3 sm:mb-4 font-medium text-base sm:text-lg text-slate-700 dark:text-slate-300 transition-colors duration-300'>{t.restore.originalPhoto}</h2>
+                    <div className='bg-white dark:bg-slate-700 rounded-2xl sm:rounded-3xl p-2 sm:p-4 shadow-inner border-2 border-[#E8DEBB] dark:border-slate-600 overflow-hidden transition-colors duration-300'>
                       <Image
                         alt='修复前'
                         src={originalPhoto}
@@ -302,15 +304,15 @@ const Home: NextPage = () => {
                       />
                     </div>
                   </div>
-                  <div className='hidden sm:block w-px bg-[#CFC3A7] self-stretch my-4'></div>
-                  <div className='sm:hidden w-full h-px bg-[#CFC3A7] my-2'></div>
+                  <div className='hidden sm:block w-px bg-[#CFC3A7] dark:bg-slate-600 self-stretch my-4 transition-colors duration-300'></div>
+                  <div className='sm:hidden w-full h-px bg-[#CFC3A7] dark:bg-slate-600 my-2 transition-colors duration-300'></div>
                   <div className='flex-1'>
-                    <h2 className='mb-3 sm:mb-4 font-medium text-base sm:text-lg text-slate-700'>修复后</h2>
-                    <div className='bg-white rounded-2xl sm:rounded-3xl p-2 sm:p-4 shadow-inner border-2 border-[#E8DEBB] min-h-[300px] sm:min-h-[400px] flex items-center justify-center'>
+                    <h2 className='mb-3 sm:mb-4 font-medium text-base sm:text-lg text-slate-700 dark:text-slate-300 transition-colors duration-300'>{t.restore.restoredPhoto}</h2>
+                    <div className='bg-white dark:bg-slate-700 rounded-2xl sm:rounded-3xl p-2 sm:p-4 shadow-inner border-2 border-[#E8DEBB] dark:border-slate-600 min-h-[300px] sm:min-h-[400px] flex items-center justify-center transition-colors duration-300'>
                       {loading ? (
                         <LoadingDots color='#666' style='large' />
                       ) : (
-                        <div className='text-slate-400 text-sm sm:text-base'>正在处理中...</div>
+                        <div className='text-slate-400 dark:text-slate-500 text-sm sm:text-base transition-colors duration-300'>{t.restore.loading}</div>
                       )}
                     </div>
                   </div>
@@ -323,14 +325,14 @@ const Home: NextPage = () => {
               <div className='bg-[#F7F4E9] rounded-3xl sm:rounded-[40px] p-4 sm:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.1)] border-4 border-[#E8DEBB] relative overflow-hidden'>
                 {/* 内部装饰效果 */}
                 <div className='absolute inset-0 opacity-30 pointer-events-none'>
-                  <div className='absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#FFF8E0] to-transparent'></div>
+                  <div className='absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#FFF8E0] dark:from-slate-700/30 to-transparent'></div>
                 </div>
                 
                 <div className='relative flex flex-col sm:flex-row gap-4 sm:gap-8'>
                   {/* 修复前 */}
                   <div className='flex-1'>
-                    <h2 className='mb-3 sm:mb-4 font-medium text-base sm:text-lg text-slate-700'>修复前</h2>
-                    <div className='bg-white rounded-2xl sm:rounded-3xl p-2 sm:p-4 shadow-inner border-2 border-[#E8DEBB] overflow-hidden'>
+                    <h2 className='mb-3 sm:mb-4 font-medium text-base sm:text-lg text-slate-700 dark:text-slate-300 transition-colors duration-300'>{t.restore.originalPhoto}</h2>
+                    <div className='bg-white dark:bg-slate-700 rounded-2xl sm:rounded-3xl p-2 sm:p-4 shadow-inner border-2 border-[#E8DEBB] dark:border-slate-600 overflow-hidden transition-colors duration-300'>
                       <Image
                         alt='修复前照片'
                         src={originalPhoto}
@@ -342,15 +344,15 @@ const Home: NextPage = () => {
                   </div>
 
                   {/* 分隔线 */}
-                  <div className='hidden sm:block w-px bg-[#CFC3A7] self-stretch my-4'></div>
-                  <div className='sm:hidden w-full h-px bg-[#CFC3A7] my-2'></div>
+                  <div className='hidden sm:block w-px bg-[#CFC3A7] dark:bg-slate-600 self-stretch my-4 transition-colors duration-300'></div>
+                  <div className='sm:hidden w-full h-px bg-[#CFC3A7] dark:bg-slate-600 my-2 transition-colors duration-300'></div>
 
                   {/* 修复后 */}
                   <div className='flex-1'>
-                    <h2 className='mb-3 sm:mb-4 font-medium text-base sm:text-lg text-slate-700'>修复后</h2>
+                    <h2 className='mb-3 sm:mb-4 font-medium text-base sm:text-lg text-slate-700 dark:text-slate-300 transition-colors duration-300'>{t.restore.restoredPhoto}</h2>
                     <div
                       onClick={() => document.getElementById('preview-modal')?.classList.remove('hidden')}
-                      className='bg-white rounded-2xl sm:rounded-3xl p-2 sm:p-4 shadow-inner border-2 border-[#E8DEBB] overflow-hidden cursor-zoom-in relative group'
+                      className='bg-white dark:bg-slate-700 rounded-2xl sm:rounded-3xl p-2 sm:p-4 shadow-inner border-2 border-[#E8DEBB] dark:border-slate-600 overflow-hidden cursor-zoom-in relative group transition-colors duration-300'
                     >
                       <Image
                         alt='修复后'
@@ -373,9 +375,9 @@ const Home: NextPage = () => {
           )}
           {loading && (
             <div className='mt-8'>
-              <div className='bg-[#F7F4E9] rounded-2xl px-6 py-4 border-2 border-[#E8DEBB] inline-block'>
+              <div className='bg-[#F7F4E9] dark:bg-slate-800 rounded-2xl px-6 py-4 border-2 border-[#E8DEBB] dark:border-slate-700 inline-block transition-colors duration-300'>
                 <LoadingDots color='#666' style='large' />
-                <p className='text-sm text-slate-600 mt-2'>正在处理中，请稍候...</p>
+                <p className='text-sm text-slate-600 dark:text-slate-400 mt-2 transition-colors duration-300'>{t.restore.loading}</p>
               </div>
             </div>
           )}
@@ -430,9 +432,9 @@ const Home: NextPage = () => {
                   }
                 }}
                 disabled={loading}
-                className={`bg-white rounded-xl text-slate-700 border-2 border-[#E8DEBB] font-medium px-6 py-3 hover:bg-[#F7F4E9] transition shadow-lg ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-2 border-[#E8DEBB] dark:border-slate-600 font-medium px-6 py-3 hover:bg-[#F7F4E9] dark:hover:bg-slate-700 transition shadow-lg ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                {loading ? '生成中...' : '重新生成'}
+                {loading ? t.restore.loading : t.restore.regenerate}
               </button>
             )}
             {restoredLoaded && (
@@ -442,7 +444,7 @@ const Home: NextPage = () => {
                 }}
                 className='bg-white rounded-xl text-slate-700 border-2 border-[#E8DEBB] font-medium px-6 py-3 hover:bg-[#F7F4E9] transition shadow-lg'
               >
-                下载修复后的照片
+                {t.restore.download}
               </button>
             )}
           </div>
