@@ -105,11 +105,33 @@ const Home: NextPage = () => {
         <div className='relative z-10'>
           <UploadDropzone
             options={options}
-            onUpdate={({ uploadedFiles }) => {
-              // 清除之前的错误
-              setError(null);
-              
-              if (uploadedFiles.length !== 0) {
+            onUpdate={({ uploadedFiles, failedFiles }) => {
+              // 检查是否有失败的文件
+              if (failedFiles && failedFiles.length > 0) {
+                const failedFile = failedFiles[0];
+                let errorMsg = '';
+                
+                // 检查失败原因
+                if (failedFile.error?.message) {
+                  errorMsg = failedFile.error.message;
+                } else if (failedFile.error?.type === 'FILE_TOO_LARGE') {
+                  const maxSizeStr = formatFileSize(maxFileSize);
+                  errorMsg = language === 'zh' 
+                    ? `图片大小不能超过${maxSizeStr}`
+                    : `Image size cannot exceed ${maxSizeStr}`;
+                } else {
+                  const maxSizeStr = formatFileSize(maxFileSize);
+                  errorMsg = language === 'zh' 
+                    ? `上传失败：图片大小不能超过${maxSizeStr}`
+                    : `Upload failed: Image size cannot exceed ${maxSizeStr}`;
+                }
+                
+                setError(errorMsg);
+                console.error('上传失败:', failedFile);
+              } else if (uploadedFiles.length !== 0) {
+                // 清除之前的错误
+                setError(null);
+                
                 const image = uploadedFiles[0];
                 const imageName = image.originalFile.originalFileName;
                 // 使用原始文件URL，确保API可以正确识别图片格式
