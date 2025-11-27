@@ -28,36 +28,76 @@ export default async function handler(
       });
     }
 
-    // 获取用户积分余额
-    const userRecord = await (prisma.user.findUnique as any)({
-      where: { id: user.id },
-      select: { credits: true }
-    });
-
-    if (!userRecord) {
-      // 如果用户不存在，创建用户记录（默认0积分）
-      await (prisma.user.create as any)({
-        data: {
-          id: user.id,
-          email: user.email || '',
-          credits: 0
-        }
+    try {
+      // 获取用户积分余额
+      const userRecord = await (prisma.user.findUnique as any)({
+        where: { id: user.id },
+        select: { credits: true }
       });
+
+      if (!userRecord) {
+        // 如果用户不存在，创建用户记录（默认0积分）
+        try {
+          await (prisma.user.create as any)({
+            data: {
+              id: user.id,
+              email: user.email || '',
+              credits: 0
+            }
+          });
+        } catch (createError: any) {
+          // 如果创建失败（可能是数据库连接问题），返回默认值
+          if (createError?.message?.includes('Can\'t reach database') || 
+              createError?.message?.includes('connect') ||
+              createError?.code === 'P1001') {
+            console.warn('Database connection error when creating user, returning default credits:', createError.message);
+            return res.status(200).json({
+              success: true,
+              credits: 0
+            });
+          }
+          throw createError;
+        }
+        return res.status(200).json({
+          success: true,
+          credits: 0
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        credits: userRecord.credits || 0
+      });
+    } catch (dbError: any) {
+      // 处理数据库连接错误，优雅降级
+      if (dbError?.message?.includes('Can\'t reach database') || 
+          dbError?.message?.includes('connect') ||
+          dbError?.code === 'P1001') {
+        console.warn('Database connection error, returning default credits:', dbError.message);
+        // 数据库不可用时，返回默认值0，而不是错误
+        return res.status(200).json({
+          success: true,
+          credits: 0
+        });
+      }
+      // 其他数据库错误继续抛出
+      throw dbError;
+    }
+  } catch (error) {
+    console.error('Get credits balance error:', error);
+    // 最后的错误处理，如果是数据库连接错误，返回默认值
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+    if (errorMessage.includes('Can\'t reach database') || 
+        errorMessage.includes('connect') ||
+        (error as any)?.code === 'P1001') {
       return res.status(200).json({
         success: true,
         credits: 0
       });
     }
-
-    return res.status(200).json({
-      success: true,
-      credits: userRecord.credits || 0
-    });
-  } catch (error) {
-    console.error('Get credits balance error:', error);
     return res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Internal server error'
+      error: errorMessage
     });
   }
 }
