@@ -11,7 +11,7 @@ export default function Header() {
   const router = useRouter();
   const { user, loading, signOut } = useAuth();
   const { t } = useTranslation();
-  const logoButtonRef = useRef<HTMLButtonElement>(null);
+  const logoButtonRef = useRef<HTMLDivElement>(null);
   const [rainbowHeight, setRainbowHeight] = useState(0);
   const [credits, setCredits] = useState<number | null>(null);
   const [showCreditsMenu, setShowCreditsMenu] = useState(false);
@@ -140,25 +140,24 @@ export default function Header() {
       )}
         {/* 导航栏容器 */}
         <div className='flex justify-between items-center w-full pt-6 pb-5 sm:pt-8 sm:pb-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex-wrap gap-3'>
-          {/* 左侧导航按钮 */}
-          <nav className='flex items-center gap-1.5 sm:gap-2 lg:gap-3 xl:gap-4 flex-1 justify-center sm:justify-start flex-wrap'>
-            {/* 蓝星照相馆 Logo */}
-            <Link href='/' className='relative block'>
-              <button
+          {/* 左侧：品牌标识 + 导航按钮 */}
+          <div className='flex items-center gap-2 sm:gap-3 lg:gap-4 xl:gap-5 flex-1 flex-wrap'>
+            {/* 蓝星照相馆品牌标识（非按钮） */}
+            <div className='relative flex items-center gap-1.5 sm:gap-2 lg:gap-2.5'>
+              <div
                 ref={logoButtonRef}
                 className={`
-                  relative px-3 sm:px-4 lg:px-6 xl:px-8 py-2 sm:py-2.5 lg:py-3
-                bg-gradient-to-b from-[#F7F4E9] to-[#FCF7E3] dark:from-slate-800 dark:to-slate-700 rounded-[24px] sm:rounded-[28px] lg:rounded-[32px]
-                border-[3px] sm:border-[4px] border-[#CFC3A7] dark:border-slate-600
-                text-slate-900 dark:text-slate-100 font-medium text-sm sm:text-base lg:text-lg xl:text-xl
-                  transition-all duration-200
-                  hover:scale-105 hover:shadow-lg
+                  relative px-3 sm:px-4 lg:px-5 xl:px-6 py-2 sm:py-2.5 lg:py-3
+                  bg-gradient-to-b from-[#F7F4E9] to-[#FCF7E3] dark:from-slate-800 dark:to-slate-700 rounded-[24px] sm:rounded-[28px] lg:rounded-[32px]
+                  border-[3px] sm:border-[4px] border-[#CFC3A7] dark:border-slate-600
+                  text-slate-900 dark:text-slate-100 font-medium text-sm sm:text-base lg:text-lg xl:text-xl
                   flex items-center gap-1.5 sm:gap-2 lg:gap-3
                   before:absolute before:inset-0 before:rounded-[24px] sm:before:rounded-[28px] lg:before:rounded-[32px]
                   before:bg-gradient-to-br before:from-[#FFF8E0]/40 before:to-transparent
                   before:pointer-events-none
                   shadow-md
                   whitespace-nowrap
+                  cursor-default
                 `}
               >
                 {/* 相机图标 */}
@@ -180,72 +179,75 @@ export default function Header() {
                   </svg>
                 </span>
                 <span className='relative z-10 whitespace-nowrap'>{t.nav.studio}</span>
-              </button>
-            </Link>
+              </div>
+            </div>
 
-          {/* 首页按钮 */}
-          <Link href='/' className='relative block mx-1 sm:mx-2 lg:mx-3'>
-            <button
-              className={`
-                relative px-3 sm:px-4 lg:px-5 xl:px-6 py-2 sm:py-2.5 lg:py-3
-                bg-[#F7F4E9] dark:bg-slate-800 rounded-[20px] sm:rounded-[22px] lg:rounded-[24px]
-                border-[3px] sm:border-[4px] border-[#CFC3A7] dark:border-slate-600
-                text-slate-900 dark:text-slate-100 font-medium text-xs sm:text-sm lg:text-base
-                transition-all duration-200
-                hover:scale-105 hover:shadow-md
-                ${isActive('/') ? 'opacity-100 shadow-sm' : 'opacity-90'}
-                before:absolute before:inset-0 before:rounded-[20px] sm:before:rounded-[22px] lg:before:rounded-[24px]
-                before:bg-gradient-to-br before:from-[#FFF8E0]/30 before:to-transparent
-                before:pointer-events-none
-                whitespace-nowrap
-              `}
-            >
-              <span className='relative z-10'>{t.nav.home}</span>
-            </button>
-          </Link>
+            {/* 导航按钮组 - 单行排列 */}
+            <nav className='flex items-center gap-1.5 sm:gap-2 lg:gap-2.5 xl:gap-3 flex-wrap'>
+              {/* 首页按钮 */}
+              <Link href='/' className='relative block'>
+                <button
+                  className={`
+                    relative px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5 lg:py-2.5
+                    bg-[#F7F4E9] dark:bg-slate-800 rounded-[20px] sm:rounded-[22px] lg:rounded-[24px]
+                    border-[3px] sm:border-[4px] border-[#CFC3A7] dark:border-slate-600
+                    text-slate-900 dark:text-slate-100 font-medium text-xs sm:text-sm lg:text-base
+                    transition-all duration-200
+                    hover:scale-105 hover:shadow-md
+                    ${isActive('/') ? 'opacity-100 shadow-sm' : 'opacity-90'}
+                    before:absolute before:inset-0 before:rounded-[20px] sm:before:rounded-[22px] lg:before:rounded-[24px]
+                    before:bg-gradient-to-br before:from-[#FFF8E0]/30 before:to-transparent
+                    before:pointer-events-none
+                    whitespace-nowrap
+                  `}
+                >
+                  <span className='relative z-10'>{t.nav.home}</span>
+                </button>
+              </Link>
 
-          {/* 照片修复按钮 */}
-          <Link href='/restore' className='relative block'>
-            <button
-              className={`
-                relative px-3 sm:px-4 lg:px-5 xl:px-6 py-2 sm:py-2.5 lg:py-3
-                bg-[#F7F4E9] dark:bg-slate-800 rounded-[20px] sm:rounded-[22px] lg:rounded-[24px]
-                border-[3px] sm:border-[4px] border-[#CFC3A7] dark:border-slate-600
-                text-slate-900 dark:text-slate-100 font-medium text-xs sm:text-sm lg:text-base
-                transition-all duration-200
-                hover:scale-105 hover:shadow-md
-                ${isActive('/restore') ? 'opacity-100 shadow-sm' : 'opacity-90'}
-                before:absolute before:inset-0 before:rounded-[20px] sm:before:rounded-[22px] lg:before:rounded-[24px]
-                before:bg-gradient-to-br before:from-[#FFF8E0]/30 before:to-transparent
-                before:pointer-events-none
-                whitespace-nowrap
-              `}
-            >
-              <span className='relative z-10'>{t.nav.restore}</span>
-            </button>
-          </Link>
+              {/* 照片修复按钮 */}
+              <Link href='/restore' className='relative block'>
+                <button
+                  className={`
+                    relative px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5 lg:py-2.5
+                    bg-[#F7F4E9] dark:bg-slate-800 rounded-[20px] sm:rounded-[22px] lg:rounded-[24px]
+                    border-[3px] sm:border-[4px] border-[#CFC3A7] dark:border-slate-600
+                    text-slate-900 dark:text-slate-100 font-medium text-xs sm:text-sm lg:text-base
+                    transition-all duration-200
+                    hover:scale-105 hover:shadow-md
+                    ${isActive('/restore') ? 'opacity-100 shadow-sm' : 'opacity-90'}
+                    before:absolute before:inset-0 before:rounded-[20px] sm:before:rounded-[22px] lg:before:rounded-[24px]
+                    before:bg-gradient-to-br before:from-[#FFF8E0]/30 before:to-transparent
+                    before:pointer-events-none
+                    whitespace-nowrap
+                  `}
+                >
+                  <span className='relative z-10'>{t.nav.restore}</span>
+                </button>
+              </Link>
 
-          {/* 生证件照按钮 */}
-          <Link href='/passport-photo' className='relative block'>
-            <button
-              className={`
-                relative px-3 sm:px-4 lg:px-5 xl:px-6 py-2 sm:py-2.5 lg:py-3
-                bg-[#F7F4E9] dark:bg-slate-800 rounded-[20px] sm:rounded-[22px] lg:rounded-[24px]
-                border-[3px] sm:border-[4px] border-[#CFC3A7] dark:border-slate-600
-                text-slate-900 dark:text-slate-100 font-medium text-xs sm:text-sm lg:text-base
-                transition-all duration-200
-                hover:scale-105 hover:shadow-md
-                ${isActive('/passport-photo') ? 'opacity-100 shadow-sm' : 'opacity-90'}
-                before:absolute before:inset-0 before:rounded-[20px] sm:before:rounded-[22px] lg:before:rounded-[24px]
-                before:bg-gradient-to-br before:from-[#FFF8E0]/30 before:to-transparent
-                before:pointer-events-none
-                whitespace-nowrap
-              `}
-            >
-              <span className='relative z-10'>{t.nav.passportPhoto}</span>
-            </button>
-          </Link>
-        </nav>
+              {/* 生证件照按钮 */}
+              <Link href='/passport-photo' className='relative block'>
+                <button
+                  className={`
+                    relative px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5 lg:py-2.5
+                    bg-[#F7F4E9] dark:bg-slate-800 rounded-[20px] sm:rounded-[22px] lg:rounded-[24px]
+                    border-[3px] sm:border-[4px] border-[#CFC3A7] dark:border-slate-600
+                    text-slate-900 dark:text-slate-100 font-medium text-xs sm:text-sm lg:text-base
+                    transition-all duration-200
+                    hover:scale-105 hover:shadow-md
+                    ${isActive('/passport-photo') ? 'opacity-100 shadow-sm' : 'opacity-90'}
+                    before:absolute before:inset-0 before:rounded-[20px] sm:before:rounded-[22px] lg:before:rounded-[24px]
+                    before:bg-gradient-to-br before:from-[#FFF8E0]/30 before:to-transparent
+                    before:pointer-events-none
+                    whitespace-nowrap
+                  `}
+                >
+                  <span className='relative z-10'>{t.nav.passportPhoto}</span>
+                </button>
+              </Link>
+            </nav>
+          </div>
 
         {/* 用户操作区域 - 右侧 */}
         <div className='flex items-center gap-2 sm:gap-2.5 lg:gap-3 flex-shrink-0 flex-wrap justify-end'>
