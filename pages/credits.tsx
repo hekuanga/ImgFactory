@@ -48,7 +48,7 @@ const Credits: NextPage = () => {
     loadCredits();
   }, [user]);
 
-  const handlePurchase = async (amount: number, packageId?: string) => {
+  const handlePurchase = async (creditsAmount: number, price: number, packageId?: string) => {
     if (!user || processing) return;
 
     setProcessing(true);
@@ -67,7 +67,8 @@ const Credits: NextPage = () => {
           'Authorization': `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
-          amount: amount,
+          creditsAmount: creditsAmount, // 积分数量
+          price: price, // 实际价格（元）
           packageId: packageId
         })
       });
@@ -88,10 +89,10 @@ const Credits: NextPage = () => {
   };
 
   const creditPackages = [
-    { amount: 10, price: 9.9, bonus: 0 },
-    { amount: 50, price: 39.9, bonus: 5 },
-    { amount: 100, price: 69.9, bonus: 15 },
-    { amount: 200, price: 129.9, bonus: 40 },
+    { amount: 10, price: 9.9, bonus: 0, packageId: 'package_10' },
+    { amount: 50, price: 39.9, bonus: 5, packageId: 'package_50' },
+    { amount: 100, price: 69.9, bonus: 15, packageId: 'package_100' },
+    { amount: 200, price: 129.9, bonus: 40, packageId: 'package_200' },
   ];
 
   if (authLoading || loading) {
@@ -176,7 +177,7 @@ const Credits: NextPage = () => {
                   </div>
                 </div>
                 <button
-                  onClick={() => handlePurchase(pkg.amount + pkg.bonus, `package_${pkg.amount}`)}
+                  onClick={() => handlePurchase(pkg.amount + pkg.bonus, pkg.price, pkg.packageId)}
                   disabled={processing}
                   className='w-full bg-black dark:bg-white text-white dark:text-black rounded-lg hover:bg-black/80 dark:hover:bg-white/80 transition px-4 py-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed'
                 >

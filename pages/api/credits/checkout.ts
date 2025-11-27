@@ -3,7 +3,8 @@ import { verifyAuth } from '../../../lib/auth-middleware';
 import { stripe, getOrCreateStripeCustomer } from '../../../lib/stripe';
 
 type CreditsCheckoutRequest = {
-  amount: number; // 积分数量
+  creditsAmount: number; // 积分数量
+  price: number; // 实际价格（元）
   packageId?: string; // 套餐ID（可选）
 };
 
@@ -34,18 +35,24 @@ export default async function handler(
       });
     }
 
-    const { amount, packageId } = req.body as CreditsCheckoutRequest;
+    const { creditsAmount, price, packageId } = req.body as CreditsCheckoutRequest;
 
-    if (!amount || amount <= 0) {
+    if (!creditsAmount || creditsAmount <= 0) {
       return res.status(400).json({
         success: false,
-        error: 'Invalid amount'
+        error: 'Invalid credits amount'
       });
     }
 
-    // 计算价格（1积分 = 1元，可以根据需要调整）
-    const unitPrice = 1; // 每积分1元
-    const totalPrice = amount * unitPrice;
+    if (!price || price <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid price'
+      });
+    }
+
+    // 使用前端传递的价格，而不是计算价格
+    const totalPrice = price;
 
     // 获取站点 URL
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 
@@ -63,24 +70,25 @@ export default async function handler(
           price_data: {
             currency: 'cny', // 人民币
             product_data: {
-              name: `${amount} 积分`,
-              description: `购买 ${amount} 积分用于照片生成`,
+              name: `${creditsAmount} 积分`,
+              description: `购买 ${creditsAmount} 积分用于照片生成`,
             },
-            unit_amount: Math.round(totalPrice * 100), // Stripe使用分为单位
+            unit_amount: Math.round(totalPrice * 100), // Stripe使用分为单位，使用前端传递的价格
           },
           quantity: 1,
         },
       ],
       // 使用 Supabase 用户 ID 和积分数量作为 client_reference_id
-      client_reference_id: `${user.id}:${amount}`,
+      client_reference_id: `${user.id}:${creditsAmount}`,
       // 成功后的重定向 URL
-      success_url: `${siteUrl}/credits/success?session_id={CHECKOUT_SESSION_ID}&amount=${amount}`,
+      success_url: `${siteUrl}/credits/success?session_id={CHECKOUT_SESSION_ID}&amount=${creditsAmount}`,
       // 取消后的重定向 URL
       cancel_url: `${siteUrl}/credits?canceled=true`,
       // 在 session metadata 中保存用户ID和积分数量
       metadata: {
         supabase_user_id: user.id,
-        credits_amount: amount.toString(),
+        credits_amount: creditsAmount.toString(),
+        price: totalPrice.toString(), // 保存实际支付价格
         package_id: packageId || '',
       },
       // 允许使用优惠码
