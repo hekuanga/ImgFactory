@@ -31,6 +31,7 @@ export const zh = {
     title: '修复您的照片',
     subtitle: '使用 AI 技术恢复和增强您的珍贵照片',
     restoreButton: '修复您的照片',
+    passportPhotoButton: '生成您的证件照',
   },
   // 照片修复页面
   restore: {

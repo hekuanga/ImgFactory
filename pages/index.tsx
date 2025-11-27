@@ -76,26 +76,49 @@ const Home: NextPage = () => {
           </div>
         </div>
 
-        {/* 修复按钮 */}
-        <div className='mb-8 sm:mb-10 lg:mb-12'>
-          <Link href='/restore' className='relative inline-block transition-transform hover:scale-105 active:scale-95'>
-            <button
-              className={`
-                relative px-8 sm:px-12 lg:px-16 py-3 sm:py-4 lg:py-5
-                bg-[#F7F4E9] dark:bg-slate-800 rounded-[32px] sm:rounded-[36px] lg:rounded-[40px]
-                border-[6px] sm:border-[7px] lg:border-[8px] border-[#E8DEBB] dark:border-slate-600
-                text-slate-900 dark:text-slate-100 font-medium text-lg sm:text-xl lg:text-2xl transition-colors duration-300
-                transition-all duration-200
-                hover:shadow-lg hover:scale-105
-                before:absolute before:inset-0 before:rounded-[32px] sm:before:rounded-[36px] lg:before:rounded-[40px]
-                before:bg-gradient-to-br before:from-[#FFF8E0]/40 before:via-[#FFF8E0]/20 before:to-transparent
-                before:pointer-events-none
-                shadow-md
-              `}
-            >
-              <span className='relative z-10 whitespace-nowrap'>{t.home.restoreButton}</span>
-            </button>
-          </Link>
+        {/* 功能按钮组 */}
+        <div className='mb-8 sm:mb-10 lg:mb-12 w-full max-w-4xl'>
+          <div className='flex flex-col sm:flex-row gap-4 sm:gap-6 lg:gap-8 items-center justify-center'>
+            {/* 修复照片按钮 */}
+            <Link href='/restore' className='relative inline-block transition-transform hover:scale-105 active:scale-95 w-full sm:w-auto'>
+              <button
+                className={`
+                  relative w-full sm:w-auto px-8 sm:px-12 lg:px-16 py-3 sm:py-4 lg:py-5
+                  bg-[#F7F4E9] dark:bg-slate-800 rounded-[32px] sm:rounded-[36px] lg:rounded-[40px]
+                  border-[6px] sm:border-[7px] lg:border-[8px] border-[#E8DEBB] dark:border-slate-600
+                  text-slate-900 dark:text-slate-100 font-medium text-lg sm:text-xl lg:text-2xl transition-colors duration-300
+                  transition-all duration-200
+                  hover:shadow-lg hover:scale-105
+                  before:absolute before:inset-0 before:rounded-[32px] sm:before:rounded-[36px] lg:before:rounded-[40px]
+                  before:bg-gradient-to-br before:from-[#FFF8E0]/40 before:via-[#FFF8E0]/20 before:to-transparent
+                  before:pointer-events-none
+                  shadow-md
+                `}
+              >
+                <span className='relative z-10 whitespace-nowrap'>{t.home.restoreButton}</span>
+              </button>
+            </Link>
+
+            {/* 生成证件照按钮 */}
+            <Link href='/passport-photo' className='relative inline-block transition-transform hover:scale-105 active:scale-95 w-full sm:w-auto'>
+              <button
+                className={`
+                  relative w-full sm:w-auto px-8 sm:px-12 lg:px-16 py-3 sm:py-4 lg:py-5
+                  bg-[#F7F4E9] dark:bg-slate-800 rounded-[32px] sm:rounded-[36px] lg:rounded-[40px]
+                  border-[6px] sm:border-[7px] lg:border-[8px] border-[#E8DEBB] dark:border-slate-600
+                  text-slate-900 dark:text-slate-100 font-medium text-lg sm:text-xl lg:text-2xl transition-colors duration-300
+                  transition-all duration-200
+                  hover:shadow-lg hover:scale-105
+                  before:absolute before:inset-0 before:rounded-[32px] sm:before:rounded-[36px] lg:before:rounded-[40px]
+                  before:bg-gradient-to-br before:from-[#FFF8E0]/40 before:via-[#FFF8E0]/20 before:to-transparent
+                  before:pointer-events-none
+                  shadow-md
+                `}
+              >
+                <span className='relative z-10 whitespace-nowrap'>{t.home.passportPhotoButton}</span>
+              </button>
+            </Link>
+          </div>
         </div>
       </main>
       <Footer />

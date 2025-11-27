@@ -31,6 +31,7 @@ export const en = {
     title: 'Restore Your Photos',
     subtitle: 'Use AI technology to restore and enhance your precious photos',
     restoreButton: 'Restore Your Photos',
+    passportPhotoButton: 'Generate Your ID Photo',
   },
   // Photo restoration page
   restore: {
