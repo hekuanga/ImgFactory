@@ -91,6 +91,12 @@ export const en = {
     dark: 'Dark',
     chinese: '中文',
     english: 'English',
+    uploadInstruction: 'Please upload your photo here',
+    uploadFormat: 'Supports JPG, PNG formats, or drag and drop images below',
+    poweredBy: 'Powered by',
+    and: 'and',
+    createdBy: 'Created by',
+    contactUs: 'Contact us',
   },
 };
 

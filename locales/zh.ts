@@ -91,6 +91,12 @@ export const zh = {
     dark: '深色',
     chinese: '中文',
     english: 'English',
+    uploadInstruction: '请在此处上传您的照片',
+    uploadFormat: '支持 JPG、PNG 格式，或直接拖拽图片到下方区域',
+    poweredBy: '由',
+    and: '和',
+    createdBy: '由',
+    contactUs: '联系我们',
   },
 };
 

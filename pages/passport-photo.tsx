@@ -116,13 +116,13 @@ const PassportPhoto: NextPage = () => {
   // Bytescale 上传组件 - 与修复页面相同
   const UploadDropZone = () => (
     <div className='w-full max-w-4xl'>
-      {/* 中文提示 */}
+      {/* 上传提示 */}
       <div className='text-center mb-4'>
         <p className='text-base sm:text-lg text-slate-700 font-medium mb-2'>
-          请在此处上传您的照片
+          {t.common.uploadInstruction}
         </p>
         <p className='text-sm text-slate-500'>
-          支持 JPG、PNG 格式，或直接拖拽图片到下方区域
+          {t.common.uploadFormat}
         </p>
       </div>
       
