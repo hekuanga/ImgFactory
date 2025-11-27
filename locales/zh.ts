@@ -58,6 +58,7 @@ export const zh = {
     compareSlider: '对比滑动',
     originalPhotoAlt: '原始照片',
     restoredPhotoAlt: '修复后照片',
+    insufficientCredits: '您的积分不足，无法生成照片。请先充值积分。',
     // Model names
     modelArkSDK: '方舟SDK',
     modelReplicate: 'Replicate',
@@ -75,6 +76,7 @@ export const zh = {
     selectModel: '生成模型',
     uploadPhoto: '上传照片',
     currentUsedModel: '当前使用模型',
+    insufficientCredits: '您的积分不足，无法生成证件照。请先充值积分。',
     originalImage: '原图',
     originalImageLoadFailed: '原图加载失败',
     uploadedPhoto: '上传的照片',

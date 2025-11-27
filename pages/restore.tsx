@@ -177,8 +177,13 @@ const Home: NextPage = () => {
         let errorMsg = '照片修复失败，请稍后再试。';
         if (typeof response === 'string') {
           errorMsg = response;
+        } else if (response?.error === 'INSUFFICIENT_CREDITS' || response?.message?.includes('积分不足')) {
+          // 积分不足错误，使用翻译
+          errorMsg = t.restore.insufficientCredits;
         } else if (response?.error) {
           errorMsg = typeof response.error === 'string' ? response.error : '照片修复失败，请稍后再试。';
+        } else if (response?.message) {
+          errorMsg = response.message;
         }
         
         // 后端已经提供了详细的错误信息和建议，直接使用

@@ -15,6 +15,7 @@ interface ApiResponse {
   imageUrl?: string;
   usedModel?: string;
   error?: string;
+  message?: string;
   modelSwitchInfo?: string;
 }
 
@@ -652,6 +653,35 @@ export default async function handler(
   const selectedModel = requestedModel || 'replicate'; // 默认使用Replicate
   console.log('请求的模型:', selectedModel);
   
+  // 检查用户积分（在开始处理之前）
+  try {
+    const user = await verifyAuth(req, res);
+    if (user) {
+      const userRecord = await (prisma.user.findUnique as any)({
+        where: { id: user.id },
+        select: { credits: true }
+      });
+
+      const currentCredits = userRecord?.credits || 0;
+      
+      if (currentCredits < 1) {
+        console.warn('用户积分不足，无法生成照片');
+        return res.status(400).json({
+          error: 'INSUFFICIENT_CREDITS',
+          message: '您的积分不足，无法生成照片。请先充值积分。'
+        });
+      }
+    }
+  } catch (creditCheckError: any) {
+    // 如果是列不存在错误（P2022），允许继续（兼容旧数据库）
+    if (creditCheckError?.code === 'P2022' || creditCheckError?.message?.includes('does not exist')) {
+      console.warn('Credits column does not exist, skipping credit check');
+    } else {
+      // 其他错误（如未登录）允许继续，匿名用户也可以使用
+      console.log('Credit check failed (user may not be logged in), allowing request to continue');
+    }
+  }
+  
   // 检查速率限制
   const isDev = process.env.NODE_ENV === 'development';
   const identifier = 'anonymous_user';
@@ -835,43 +865,31 @@ export default async function handler(
       console.log('最终返回的图片URL:', finalResult.imageUrl.substring(0, 150));
     }
     
-    // 扣除积分（如果用户已登录）
+    // 扣除积分（只有在图片生成成功后才扣除）
     try {
       const user = await verifyAuth(req, res);
-      if (user) {
-        // 检查积分是否足够
-        const userRecord = await (prisma.user.findUnique as any)({
-          where: { id: user.id },
-          select: { credits: true }
-        });
-
-        const currentCredits = userRecord?.credits || 0;
-        
-        if (currentCredits >= 1) {
-          // 扣除1积分
-          await prisma.$transaction(async (tx: any) => {
-            await tx.user.update({
-              where: { id: user.id },
-              data: {
-                credits: {
-                  decrement: 1
-                }
+      if (user && finalResult && finalResult.imageUrl) {
+        // 只有在成功生成图片后才扣除积分
+        await prisma.$transaction(async (tx: any) => {
+          await tx.user.update({
+            where: { id: user.id },
+            data: {
+              credits: {
+                decrement: 1
               }
-            });
-
-            await tx.creditHistory.create({
-              data: {
-                userId: user.id,
-                amount: -1,
-                type: 'deduct',
-                description: '照片修复'
-              }
-            });
+            }
           });
-          console.log('积分扣除成功，剩余积分:', currentCredits - 1);
-        } else {
-          console.warn('用户积分不足，但已生成照片');
-        }
+
+          await tx.creditHistory.create({
+            data: {
+              userId: user.id,
+              amount: -1,
+              type: 'deduct',
+              description: '照片修复'
+            }
+          });
+        });
+        console.log('积分扣除成功（照片生成成功）');
       }
     } catch (creditError: any) {
       // 积分扣除失败不影响照片生成结果，只记录错误

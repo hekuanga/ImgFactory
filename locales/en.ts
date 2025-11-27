@@ -58,6 +58,7 @@ export const en = {
     compareSlider: 'Compare Slider',
     originalPhotoAlt: 'Original Photo',
     restoredPhotoAlt: 'Restored Photo',
+    insufficientCredits: 'Insufficient credits. Please recharge your credits first.',
     // Model names
     modelArkSDK: 'Ark SDK',
     modelReplicate: 'Replicate',
@@ -75,6 +76,7 @@ export const en = {
     selectModel: 'Generation Model',
     uploadPhoto: 'Upload Photo',
     currentUsedModel: 'Current Model Used',
+    insufficientCredits: 'Insufficient credits. Please recharge credits before generating ID photos.',
     originalImage: 'Original Image',
     originalImageLoadFailed: 'Original image load failed',
     uploadedPhoto: 'Uploaded Photo',

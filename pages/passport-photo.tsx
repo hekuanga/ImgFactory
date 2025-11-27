@@ -487,8 +487,11 @@ const PassportPhoto: NextPage = () => {
         // 对不同类型的错误进行特殊处理
         let errorMessage = response?.error || response || '服务器返回了错误';
         
-        // 根据错误消息内容提供更友好的格式
-        if (typeof errorMessage === 'string') {
+        // 检查是否是积分不足错误
+        if (response?.error === 'INSUFFICIENT_CREDITS' || response?.message?.includes('积分不足')) {
+          errorMessage = t.passportPhoto.insufficientCredits;
+        } else if (typeof errorMessage === 'string') {
+          // 根据错误消息内容提供更友好的格式
           // 检查是否包含我们在后端添加的建议提示
           if (!errorMessage.includes('建议:')) {
             // 如果没有建议，添加统一的建议
