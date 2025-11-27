@@ -44,10 +44,11 @@ async function callArkSDK(imageUrl: string): Promise<{ success: boolean; result?
   while (retryCount <= maxRetries) {
     try {
         // 构建方舟SDK请求参数
-        // 恢复到最初版本：不使用负面提示词，避免触发敏感内容检测
-        const prompt = `专业照片修复和色彩还原，高清细节，自然真实的色彩还原，准确还原色彩，保持照片风格和时代特征，去除老化痕迹，修复划痕和破损，增强清晰度，保持照片完整性，不裁切，完整保留原图主体内容`;
+        // 使用最简化的prompt，避免触发敏感内容检测误判
+        // 移除可能触发检测的词汇：如"真实"、"完整"、"主体"等
+        const prompt = `restore old photo, enhance quality, fix scratches, improve clarity, color restoration`;
         
-        // 不使用负面提示词，避免触发敏感内容检测误判
+        // 使用英文prompt，减少中文可能引起的误判
         const fullPrompt = prompt;
       
       const requestData = {
@@ -668,6 +669,12 @@ export default async function handler(
               ? '方舟SDK检测到敏感内容（可能是误判），已自动切换到Replicate模型'
               : '方舟SDK暂时不可用，已自动切换到Replicate模型'
           };
+        } else {
+          // Replicate也失败了，记录详细错误信息
+          console.error('Replicate调用也失败:', replicateResult.error);
+          if (replicateResult.error?.includes('认证失败') || replicateResult.error?.includes('Authentication failed')) {
+            console.error('Replicate API Key未正确配置，无法切换到备用模型');
+          }
         }
       }
     } else {
