@@ -21,6 +21,10 @@ export const en = {
     creditsDescription: 'Each photo generation costs 1 credit',
     rechargeCredits: 'Recharge Credits',
     viewDetails: 'View Details',
+    paymentSuccess: 'Payment Successful!',
+    creditsPurchased: 'Successfully purchased {{amount}} credits',
+    startUsing: 'Start Using',
+    backToCredits: '← Back to Credits',
   },
   // Home page
   home: {

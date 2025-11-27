@@ -21,6 +21,10 @@ export const zh = {
     creditsDescription: '每次生成照片消耗1积分',
     rechargeCredits: '充值积分',
     viewDetails: '查看详情',
+    paymentSuccess: '支付成功！',
+    creditsPurchased: '已成功购买 {{amount}} 积分',
+    startUsing: '开始使用',
+    backToCredits: '← 返回充值页面',
   },
   // 首页
   home: {

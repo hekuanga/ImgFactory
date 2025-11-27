@@ -211,9 +211,59 @@ export default async function handler(
         break;
       }
 
-      // 可选：处理其他相关事件
+      // 处理积分购买（一次性支付）
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
+        
+        // 如果是积分购买（一次性支付）
+        if (session.mode === 'payment' && session.client_reference_id) {
+          const [supabaseUserId, creditsAmount] = session.client_reference_id.split(':');
+          const credits = parseInt(creditsAmount, 10);
+          
+          if (supabaseUserId && credits > 0) {
+            try {
+              // 增加用户积分
+              await prisma.$transaction(async (tx: any) => {
+                // 确保用户存在
+                await tx.user.upsert({
+                  where: { id: supabaseUserId },
+                  update: {},
+                  create: {
+                    id: supabaseUserId,
+                    email: session.customer_email || '',
+                    credits: 0
+                  }
+                });
+
+                // 增加积分
+                await tx.user.update({
+                  where: { id: supabaseUserId },
+                  data: {
+                    credits: {
+                      increment: credits
+                    }
+                  }
+                });
+
+                // 记录积分历史
+                await tx.creditHistory.create({
+                  data: {
+                    userId: supabaseUserId,
+                    amount: credits,
+                    type: 'purchase',
+                    description: `Stripe支付购买 ${credits} 积分`
+                  }
+                });
+              });
+              
+              console.log(`Credits purchased: ${credits} credits added to user ${supabaseUserId}`);
+            } catch (error) {
+              console.error(`Failed to add credits for user ${supabaseUserId}:`, error);
+              // 不抛出错误，避免webhook重试
+            }
+          }
+        }
+        
         // 如果 checkout session 包含订阅，可以通过 client_reference_id 获取用户
         if (session.mode === 'subscription' && session.client_reference_id) {
           const supabaseUserId = session.client_reference_id;

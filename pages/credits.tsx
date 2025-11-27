@@ -48,7 +48,7 @@ const Credits: NextPage = () => {
     loadCredits();
   }, [user]);
 
-  const handlePurchase = async (amount: number) => {
+  const handlePurchase = async (amount: number, packageId?: string) => {
     if (!user || processing) return;
 
     setProcessing(true);
@@ -59,9 +59,8 @@ const Credits: NextPage = () => {
         return;
       }
 
-      // TODO: 集成支付系统（Stripe等）
-      // 这里先模拟充值，实际应该调用支付API
-      const res = await fetch('/api/credits/add', {
+      // 调用Stripe Checkout API
+      const res = await fetch('/api/credits/checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -69,22 +68,21 @@ const Credits: NextPage = () => {
         },
         body: JSON.stringify({
           amount: amount,
-          type: 'purchase',
-          description: language === 'zh' ? `购买 ${amount} 积分` : `Purchase ${amount} credits`
+          packageId: packageId
         })
       });
 
       const data = await res.json();
-      if (data.success) {
-        setCredits(data.credits);
-        alert(language === 'zh' ? `成功充值 ${amount} 积分` : `Successfully added ${amount} credits`);
+      if (data.success && data.url) {
+        // 重定向到Stripe Checkout页面
+        window.location.href = data.url;
       } else {
-        alert(data.error || (language === 'zh' ? '充值失败' : 'Purchase failed'));
+        alert(data.error || (language === 'zh' ? '创建支付会话失败' : 'Failed to create payment session'));
+        setProcessing(false);
       }
     } catch (error) {
       console.error('Purchase error:', error);
       alert(language === 'zh' ? '充值失败，请稍后重试' : 'Purchase failed, please try again');
-    } finally {
       setProcessing(false);
     }
   };
@@ -178,7 +176,7 @@ const Credits: NextPage = () => {
                   </div>
                 </div>
                 <button
-                  onClick={() => handlePurchase(pkg.amount + pkg.bonus)}
+                  onClick={() => handlePurchase(pkg.amount + pkg.bonus, `package_${pkg.amount}`)}
                   disabled={processing}
                   className='w-full bg-black dark:bg-white text-white dark:text-black rounded-lg hover:bg-black/80 dark:hover:bg-white/80 transition px-4 py-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed'
                 >
