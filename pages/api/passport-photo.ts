@@ -2,6 +2,8 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { createRouter } from 'next-connect';
 import multer from 'multer';
 import { getMaxFileSize, formatFileSize } from '../../constants/upload';
+import { verifyAuth } from '../../lib/auth-middleware';
+import prisma from '../../lib/prismadb';
 
 // 根据是否有 API key 获取最大文件大小（后端默认使用付费账户限制）
 const hasApiKey = !!process.env.NEXT_PUBLIC_UPLOAD_API_KEY;
@@ -476,6 +478,46 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
             console.log(`方舟SDK生成完成，耗时: ${endTime - startTime}ms`);
             console.log('最终生成的图片URL:', generatedImageUrl.substring(0, 150));
             
+            // 扣除积分（如果用户已登录）
+            try {
+              const user = await verifyAuth(req, res);
+              if (user) {
+                const userRecord = await (prisma.user.findUnique as any)({
+                  where: { id: user.id },
+                  select: { credits: true }
+                });
+
+                const currentCredits = userRecord?.credits || 0;
+                
+                if (currentCredits >= 1) {
+                  await prisma.$transaction(async (tx: any) => {
+                    await tx.user.update({
+                      where: { id: user.id },
+                      data: {
+                        credits: {
+                          decrement: 1
+                        }
+                      }
+                    });
+
+                    await tx.creditHistory.create({
+                      data: {
+                        userId: user.id,
+                        amount: -1,
+                        type: 'deduct',
+                        description: '证件照生成'
+                      }
+                    });
+                  });
+                  console.log('积分扣除成功，剩余积分:', currentCredits - 1);
+                } else {
+                  console.warn('用户积分不足，但已生成证件照');
+                }
+              }
+            } catch (creditError) {
+              console.error('扣除积分时出错:', creditError);
+            }
+            
             // 返回生成的图像URL和使用的模型
             return res.status(200).json({
               imageUrl: generatedImageUrl,
@@ -737,6 +779,46 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
         console.log(`Replicate生成完成，耗时: ${endTime - startTime}ms`);
         console.log('最终返回的图片URL:', finalImageUrl.substring(0, 150));
         console.log('===== Replicate请求完成 =====');
+        
+        // 扣除积分（如果用户已登录）
+        try {
+          const user = await verifyAuth(req, res);
+          if (user) {
+            const userRecord = await (prisma.user.findUnique as any)({
+              where: { id: user.id },
+              select: { credits: true }
+            });
+
+            const currentCredits = userRecord?.credits || 0;
+            
+            if (currentCredits >= 1) {
+              await prisma.$transaction(async (tx: any) => {
+                await tx.user.update({
+                  where: { id: user.id },
+                  data: {
+                    credits: {
+                      decrement: 1
+                    }
+                  }
+                });
+
+                await tx.creditHistory.create({
+                  data: {
+                    userId: user.id,
+                    amount: -1,
+                    type: 'deduct',
+                    description: '证件照生成'
+                  }
+                });
+              });
+              console.log('积分扣除成功，剩余积分:', currentCredits - 1);
+            } else {
+              console.warn('用户积分不足，但已生成证件照');
+            }
+          }
+        } catch (creditError) {
+          console.error('扣除积分时出错:', creditError);
+        }
         
         // 返回生成的图像URL和使用的模型
         return res.status(200).json({

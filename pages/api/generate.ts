@@ -1,6 +1,8 @@
 import { Ratelimit } from '@upstash/ratelimit';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import redis from '../../utils/redis';
+import { verifyAuth } from '../../lib/auth-middleware';
+import prisma from '../../lib/prismadb';
 
 interface ExtendedNextApiRequest extends NextApiRequest {
   body: {
@@ -46,7 +48,14 @@ async function callArkSDK(imageUrl: string): Promise<{ success: boolean; result?
         // 构建方舟SDK请求参数
         // 使用最简化的prompt，避免触发敏感内容检测误判
         // 移除可能触发检测的词汇：如"真实"、"完整"、"主体"等
-        const prompt = `restore old photo, enhance quality, fix scratches, improve clarity, color restoration`;
+        const prompt = `专业级照片修复与色彩校正。
+                        请完全去除图像中的老化感、黄化感、褪色滤镜和做旧风格，不保留任何年代泛黄或旧照片气质。
+                        精准恢复真实自然的肤色与光影，高度还原原片应有的色彩，不进行怀旧风或复古处理。
+                        修复划痕、裂纹、污渍和画面噪点，增强清晰度、质感与细节。
+                        保持人物面部结构与原始特征，不美化过度，不改变人物性别与年龄特征。
+                        保持构图完整性，不裁切，不改变主体内容。
+                        整体风格应为——清晰、干净、自然、现代化的真实影像效果（非复古风格）
+                        `;
         
         // 使用英文prompt，减少中文可能引起的误判
         const fullPrompt = prompt;
@@ -793,6 +802,50 @@ export default async function handler(
     if (finalResult.imageUrl) {
       console.log('最终返回的图片URL:', finalResult.imageUrl.substring(0, 150));
     }
+    
+    // 扣除积分（如果用户已登录）
+    try {
+      const user = await verifyAuth(req, res);
+      if (user) {
+        // 检查积分是否足够
+        const userRecord = await (prisma.user.findUnique as any)({
+          where: { id: user.id },
+          select: { credits: true }
+        });
+
+        const currentCredits = userRecord?.credits || 0;
+        
+        if (currentCredits >= 1) {
+          // 扣除1积分
+          await prisma.$transaction(async (tx: any) => {
+            await tx.user.update({
+              where: { id: user.id },
+              data: {
+                credits: {
+                  decrement: 1
+                }
+              }
+            });
+
+            await tx.creditHistory.create({
+              data: {
+                userId: user.id,
+                amount: -1,
+                type: 'deduct',
+                description: '照片修复'
+              }
+            });
+          });
+          console.log('积分扣除成功，剩余积分:', currentCredits - 1);
+        } else {
+          console.warn('用户积分不足，但已生成照片');
+        }
+      }
+    } catch (creditError) {
+      // 积分扣除失败不影响照片生成结果，只记录错误
+      console.error('扣除积分时出错:', creditError);
+    }
+    
     console.log('===== 照片修复请求完成 =====');
     
     // 返回完整的响应对象

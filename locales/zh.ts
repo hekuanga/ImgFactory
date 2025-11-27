@@ -16,6 +16,11 @@ export const zh = {
     loading: '加载中...',
     processing: '处理中...',
     email: '邮箱',
+    credits: '积分',
+    creditsBalance: '积分余额',
+    creditsDescription: '每次生成照片消耗1积分',
+    rechargeCredits: '充值积分',
+    viewDetails: '查看详情',
   },
   // 首页
   home: {

@@ -16,6 +16,11 @@ export const en = {
     loading: 'Loading...',
     processing: 'Processing...',
     email: 'Email',
+    credits: 'Credits',
+    creditsBalance: 'Credits Balance',
+    creditsDescription: 'Each photo generation costs 1 credit',
+    rechargeCredits: 'Recharge Credits',
+    viewDetails: 'View Details',
   },
   // Home page
   home: {

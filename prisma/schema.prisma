@@ -23,8 +23,12 @@ model User {
   subscriptionStatus String? @map("subscription_status") // active, canceled, past_due, etc.
   subscriptionTier  String?  @default("free") @map("subscription_tier") // free, pro, vip
   currentPeriodEnd  DateTime? @map("current_period_end") // 当前订阅周期结束时间
+  // 积分相关字段
+  credits           Int      @default(0) // 用户积分余额
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
+
+  creditHistory     CreditHistory[]
 
   @@map("users")
 }
@@ -49,5 +53,19 @@ model UsageLimits {
   lastResetAt   DateTime @default(now()) @map("last_reset_at")
 
   @@map("usage_limits")
+}
+
+model CreditHistory {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  amount        Int      // 积分变动数量（正数为增加，负数为扣除）
+  type          String   // 类型：purchase（购买）、deduct（扣除）、refund（退款）、bonus（奖励）
+  description   String?  // 描述信息
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("credit_history")
+  @@index([userId])
 }
 

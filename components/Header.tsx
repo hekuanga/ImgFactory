@@ -17,12 +17,16 @@ export default function Header() {
   const [checkingSubscription, setCheckingSubscription] = useState(false);
   const logoButtonRef = useRef<HTMLButtonElement>(null);
   const [rainbowHeight, setRainbowHeight] = useState(0);
+  const [credits, setCredits] = useState<number | null>(null);
+  const [showCreditsMenu, setShowCreditsMenu] = useState(false);
+  const creditsMenuRef = useRef<HTMLDivElement>(null);
 
-  // 检查用户订阅状态
+  // 检查用户订阅状态和积分
   useEffect(() => {
-    const checkSubscription = async () => {
+    const checkSubscriptionAndCredits = async () => {
       if (!user) {
         setIsSubscribed(false);
+        setCredits(null);
         return;
       }
 
@@ -31,28 +35,59 @@ export default function Header() {
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (!session) {
           setIsSubscribed(false);
+          setCredits(null);
           return;
         }
 
-        const response = await fetch('/api/billing/status', {
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-          },
-        });
+        // 并行获取订阅状态和积分
+        const [subscriptionResponse, creditsResponse] = await Promise.all([
+          fetch('/api/billing/status', {
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+            },
+          }),
+          fetch('/api/credits/balance', {
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+            },
+          })
+        ]);
 
-        const data = await response.json();
-        if (data.success && data.subscription) {
-          setIsSubscribed(data.subscription.isSubscribed || false);
+        const subscriptionData = await subscriptionResponse.json();
+        if (subscriptionData.success && subscriptionData.subscription) {
+          setIsSubscribed(subscriptionData.subscription.isSubscribed || false);
+        }
+
+        const creditsData = await creditsResponse.json();
+        if (creditsData.success && creditsData.credits !== undefined) {
+          setCredits(creditsData.credits);
         }
       } catch (error) {
-        console.error('Check subscription error:', error);
+        console.error('Check subscription/credits error:', error);
       } finally {
         setCheckingSubscription(false);
       }
     };
 
-    checkSubscription();
+    checkSubscriptionAndCredits();
   }, [user]);
+
+  // 点击外部关闭积分菜单
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (creditsMenuRef.current && !creditsMenuRef.current.contains(event.target as Node)) {
+        setShowCreditsMenu(false);
+      }
+    };
+
+    if (showCreditsMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showCreditsMenu]);
 
   // 计算彩虹色条高度和位置 - 从页面顶部到Logo按钮顶部，稍微往下延伸
   useEffect(() => {
@@ -248,6 +283,59 @@ export default function Header() {
             <div className='text-xs sm:text-sm text-slate-600 dark:text-slate-400 whitespace-nowrap'>{t.user.loading}</div>
           ) : user ? (
             <>
+              {/* 积分显示 - 点击或悬停显示详情 */}
+              <div className='relative' ref={creditsMenuRef}>
+                <button
+                  onClick={() => setShowCreditsMenu(!showCreditsMenu)}
+                  onMouseEnter={() => setShowCreditsMenu(true)}
+                  className='text-xs sm:text-sm text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition whitespace-nowrap flex items-center gap-1 px-2 py-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800'
+                >
+                  <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
+                  </svg>
+                  <span>{credits !== null ? credits : '...'}</span>
+                </button>
+                
+                {/* 积分详情菜单 */}
+                {showCreditsMenu && (
+                  <div className='absolute right-0 top-full mt-2 w-64 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 p-4 z-50'>
+                    <div className='flex items-center justify-between mb-3'>
+                      <h3 className='text-sm font-semibold text-slate-900 dark:text-slate-100'>{t.user.creditsBalance}</h3>
+                      <button
+                        onClick={() => setShowCreditsMenu(false)}
+                        className='text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+                      >
+                        <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                        </svg>
+                      </button>
+                    </div>
+                    <div className='text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2'>
+                      {credits !== null ? credits : 0}
+                    </div>
+                    <p className='text-xs text-slate-600 dark:text-slate-400 mb-4'>
+                      {t.user.creditsDescription}
+                    </p>
+                    <div className='flex gap-2'>
+                      <Link
+                        href='/credits'
+                        className='flex-1 text-center text-xs font-medium bg-black dark:bg-white text-white dark:text-black rounded-lg hover:bg-black/80 dark:hover:bg-white/80 transition px-3 py-2'
+                        onClick={() => setShowCreditsMenu(false)}
+                      >
+                        {t.user.rechargeCredits}
+                      </Link>
+                      <Link
+                        href='/profile'
+                        className='flex-1 text-center text-xs font-medium bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition px-3 py-2'
+                        onClick={() => setShowCreditsMenu(false)}
+                      >
+                        {t.user.viewDetails}
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
               {/* 邮箱地址 - 完全融入背景 */}
               <div className='text-xs sm:text-sm text-slate-700 dark:text-slate-300 hidden xl:block whitespace-nowrap max-w-[200px] sm:max-w-[240px] truncate'>
                 {user.email}
