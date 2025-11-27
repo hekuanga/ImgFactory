@@ -46,6 +46,7 @@ export const en = {
     error: 'An error occurred',
     fileSizeExceeded: 'Image size cannot exceed 20MB',
     uploadNewPhoto: 'Upload New Photo',
+    usedModel: 'Model Used',
     // Model names
     modelArkSDK: 'Ark SDK',
     modelReplicate: 'Replicate',
@@ -62,6 +63,7 @@ export const en = {
     selectClothing: 'Clothing Style',
     selectModel: 'Generation Model',
     uploadPhoto: 'Upload Photo',
+    currentUsedModel: 'Current Model Used',
     generate: 'Generate ID Photo',
     loading: 'Generating...',
     fileSizeExceeded: 'Image size cannot exceed 20MB',

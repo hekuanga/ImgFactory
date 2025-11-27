@@ -342,7 +342,7 @@ const Home: NextPage = () => {
         {/* 使用的模型信息 */}
         {usedModel && (
           <div className="mt-4 text-sm text-gray-600 dark:text-slate-400 bg-white dark:bg-slate-800 px-4 py-2 rounded-lg border border-[#E8DEBB] dark:border-slate-600 inline-block transition-colors duration-300">
-            使用模型: <span className="font-medium">{usedModel}</span>
+            {t.restore.usedModel}: <span className="font-medium">{usedModel}</span>
           </div>
         )}
         

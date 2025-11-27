@@ -46,6 +46,7 @@ export const zh = {
     error: '发生错误',
     fileSizeExceeded: '图片大小不能超过20MB',
     uploadNewPhoto: '上传新照片',
+    usedModel: '使用模型',
     // Model names
     modelArkSDK: '方舟SDK',
     modelReplicate: 'Replicate',
@@ -62,6 +63,7 @@ export const zh = {
     selectClothing: '服装样式',
     selectModel: '生成模型',
     uploadPhoto: '上传照片',
+    currentUsedModel: '当前使用模型',
     generate: '生成证件照',
     loading: '生成中...',
     fileSizeExceeded: '图片大小不能超过20MB',
