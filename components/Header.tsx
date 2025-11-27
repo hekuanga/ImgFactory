@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '../hooks/useAuth';
-import { useBillingPortal } from '../hooks/useBillingPortal';
 import { supabaseClient } from '../lib/supabaseClient';
 import { useTranslation } from '../hooks/useTranslation';
 import ThemeToggle from './ThemeToggle';
@@ -11,65 +10,44 @@ import LanguageToggle from './LanguageToggle';
 export default function Header() {
   const router = useRouter();
   const { user, loading, signOut } = useAuth();
-  const { openPortal, loading: portalLoading } = useBillingPortal();
   const { t } = useTranslation();
-  const [isSubscribed, setIsSubscribed] = useState(false);
-  const [checkingSubscription, setCheckingSubscription] = useState(false);
   const logoButtonRef = useRef<HTMLButtonElement>(null);
   const [rainbowHeight, setRainbowHeight] = useState(0);
   const [credits, setCredits] = useState<number | null>(null);
   const [showCreditsMenu, setShowCreditsMenu] = useState(false);
   const creditsMenuRef = useRef<HTMLDivElement>(null);
 
-  // 检查用户订阅状态和积分
+  // 检查用户积分
   useEffect(() => {
-    const checkSubscriptionAndCredits = async () => {
+    const loadCredits = async () => {
       if (!user) {
-        setIsSubscribed(false);
         setCredits(null);
         return;
       }
 
-      setCheckingSubscription(true);
       try {
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (!session) {
-          setIsSubscribed(false);
           setCredits(null);
           return;
         }
 
-        // 并行获取订阅状态和积分
-        const [subscriptionResponse, creditsResponse] = await Promise.all([
-          fetch('/api/billing/status', {
-            headers: {
-              'Authorization': `Bearer ${session.access_token}`,
-            },
-          }),
-          fetch('/api/credits/balance', {
-            headers: {
-              'Authorization': `Bearer ${session.access_token}`,
-            },
-          })
-        ]);
-
-        const subscriptionData = await subscriptionResponse.json();
-        if (subscriptionData.success && subscriptionData.subscription) {
-          setIsSubscribed(subscriptionData.subscription.isSubscribed || false);
-        }
+        const creditsResponse = await fetch('/api/credits/balance', {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+        });
 
         const creditsData = await creditsResponse.json();
         if (creditsData.success && creditsData.credits !== undefined) {
           setCredits(creditsData.credits);
         }
       } catch (error) {
-        console.error('Check subscription/credits error:', error);
-      } finally {
-        setCheckingSubscription(false);
+        console.error('Load credits error:', error);
       }
     };
 
-    checkSubscriptionAndCredits();
+    loadCredits();
   }, [user]);
 
   // 点击外部关闭积分菜单
@@ -136,10 +114,6 @@ export default function Header() {
     } catch (error) {
       console.error('Sign out error:', error);
     }
-  };
-
-  const handleManageSubscription = async () => {
-    await openPortal();
   };
 
   const isActive = (path: string) => router.pathname === path;
@@ -274,13 +248,13 @@ export default function Header() {
         </nav>
 
         {/* 用户操作区域 - 右侧 */}
-        <div className='flex items-center gap-1.5 sm:gap-2 lg:gap-3 flex-shrink-0 flex-wrap justify-end'>
+        <div className='flex items-center gap-2 sm:gap-2.5 lg:gap-3 flex-shrink-0 flex-wrap justify-end'>
           {/* 语言和主题切换按钮 */}
           <LanguageToggle />
           <ThemeToggle />
           
           {loading ? (
-            <div className='text-xs sm:text-sm text-slate-600 dark:text-slate-400 whitespace-nowrap'>{t.user.loading}</div>
+            <div className='text-xs sm:text-sm text-slate-600 dark:text-slate-400 whitespace-nowrap px-2'>{t.user.loading}</div>
           ) : user ? (
             <>
               {/* 积分显示 - 点击或悬停显示详情 */}
@@ -288,12 +262,12 @@ export default function Header() {
                 <button
                   onClick={() => setShowCreditsMenu(!showCreditsMenu)}
                   onMouseEnter={() => setShowCreditsMenu(true)}
-                  className='text-xs sm:text-sm text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition whitespace-nowrap flex items-center gap-1 px-2 py-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800'
+                  className='text-xs sm:text-sm text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition whitespace-nowrap flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700'
                 >
-                  <svg className='w-4 h-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <svg className='w-4 h-4 sm:w-4.5 sm:h-4.5 flex-shrink-0' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                     <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' />
                   </svg>
-                  <span>{credits !== null ? credits : '...'}</span>
+                  <span className='font-medium'>{credits !== null ? credits : '...'}</span>
                 </button>
                 
                 {/* 积分详情菜单 */}
@@ -336,28 +310,15 @@ export default function Header() {
                 )}
               </div>
               
-              {/* 邮箱地址 - 完全融入背景 */}
-              <div className='text-xs sm:text-sm text-slate-700 dark:text-slate-300 hidden xl:block whitespace-nowrap max-w-[200px] sm:max-w-[240px] truncate'>
+              {/* 邮箱地址 - 响应式显示 */}
+              <div className='text-xs sm:text-sm text-slate-700 dark:text-slate-300 hidden lg:block whitespace-nowrap max-w-[180px] xl:max-w-[220px] truncate px-2'>
                 {user.email}
               </div>
-              {isSubscribed && (
-                <button
-                  onClick={handleManageSubscription}
-                  disabled={portalLoading || checkingSubscription}
-                  className='text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap'
-                >
-                  {portalLoading ? t.user.processing : t.user.manageSubscription}
-                </button>
-              )}
-              <Link
-                href='/billing'
-                className='text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition whitespace-nowrap'
-              >
-                {t.user.subscribe}
-              </Link>
+              
+              {/* 登出按钮 */}
               <button
                 onClick={handleSignOut}
-                className='text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition whitespace-nowrap'
+                className='text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition whitespace-nowrap px-2 sm:px-2.5 py-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800'
               >
                 {t.user.logout}
               </button>
@@ -366,13 +327,13 @@ export default function Header() {
             <>
               <Link
                 href='/login'
-                className='text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition whitespace-nowrap'
+                className='text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition whitespace-nowrap px-2.5 sm:px-3 py-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800'
               >
                 {t.user.login}
               </Link>
               <Link
                 href='/register'
-                className='text-xs font-medium bg-black dark:bg-white text-white dark:text-black rounded-lg hover:bg-black/80 dark:hover:bg-white/80 transition whitespace-nowrap shadow-md px-2.5 sm:px-3 py-1.5'
+                className='text-xs sm:text-sm font-medium bg-black dark:bg-white text-white dark:text-black rounded-lg hover:bg-black/80 dark:hover:bg-white/80 transition whitespace-nowrap shadow-md px-3 sm:px-4 py-1.5 sm:py-2'
               >
                 {t.user.register}
               </Link>
