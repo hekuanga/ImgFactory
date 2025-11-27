@@ -6,14 +6,18 @@ import {
 export const CompareSlider = ({
   original,
   restored,
+  originalAlt,
+  restoredAlt,
 }: {
   original: string;
   restored: string;
+  originalAlt?: string;
+  restoredAlt?: string;
 }) => {
   return (
     <ReactCompareSlider
-      itemOne={<ReactCompareSliderImage src={original} alt='原始照片' />}
-      itemTwo={<ReactCompareSliderImage src={restored} alt='修复后照片' />}
+      itemOne={<ReactCompareSliderImage src={original} alt={originalAlt || 'Original Photo'} />}
+      itemTwo={<ReactCompareSliderImage src={restored} alt={restoredAlt || 'Restored Photo'} />}
       portrait
       className='flex w-[600px] mt-5'
     />

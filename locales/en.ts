@@ -54,6 +54,10 @@ export const en = {
     largePreviewAlt: 'Large Preview',
     errorTitle: 'Error',
     closeError: 'Close Error',
+    sideBySide: 'Side by Side',
+    compareSlider: 'Compare Slider',
+    originalPhotoAlt: 'Original Photo',
+    restoredPhotoAlt: 'Restored Photo',
     // Model names
     modelArkSDK: 'Ark SDK',
     modelReplicate: 'Replicate',

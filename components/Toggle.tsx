@@ -7,11 +7,15 @@ function classNames(...classes: string[]) {
 export interface ToggleProps extends React.HTMLAttributes<HTMLDivElement> {
   sideBySide: boolean;
   setSideBySide: (sideBySide: boolean) => void;
+  sideBySideLabel?: string;
+  compareSliderLabel?: string;
 }
 
 export default function Toggle({
   sideBySide,
   setSideBySide,
+  sideBySideLabel = 'Side by Side',
+  compareSliderLabel = 'Compare Slider',
   ...props
 }: ToggleProps) {
   return (
@@ -22,7 +26,7 @@ export default function Toggle({
             !sideBySide ? 'text-gray-900' : 'text-gray-500'
           }`}
         >
-          并排显示
+          {sideBySideLabel}
         </span>
         <Switch
           checked={sideBySide}
@@ -46,7 +50,7 @@ export default function Toggle({
               sideBySide ? 'text-gray-900' : 'text-gray-500'
             } `}
           >
-            对比滑动
+            {compareSliderLabel}
           </span>
         </Switch.Label>
       </div>

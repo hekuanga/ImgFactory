@@ -54,6 +54,10 @@ export const zh = {
     largePreviewAlt: '大图预览',
     errorTitle: '错误',
     closeError: '关闭错误提示',
+    sideBySide: '并排显示',
+    compareSlider: '对比滑动',
+    originalPhotoAlt: '原始照片',
+    restoredPhotoAlt: '修复后照片',
     // Model names
     modelArkSDK: '方舟SDK',
     modelReplicate: 'Replicate',

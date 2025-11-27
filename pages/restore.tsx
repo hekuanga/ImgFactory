@@ -351,11 +351,15 @@ const Home: NextPage = () => {
             className={`${restoredLoaded ? 'visible mb-6' : 'invisible'}`}
             sideBySide={sideBySide}
             setSideBySide={(newVal) => setSideBySide(newVal)}
+            sideBySideLabel={t.restore.sideBySide}
+            compareSliderLabel={t.restore.compareSlider}
           />
           {restoredLoaded && sideBySide && (
             <CompareSlider
               original={originalPhoto!}
               restored={restoredImage!}
+              originalAlt={t.restore.originalPhotoAlt}
+              restoredAlt={t.restore.restoredPhotoAlt}
             />
           )}
           {!originalPhoto && <UploadDropZone />}
