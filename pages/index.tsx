@@ -43,7 +43,7 @@ const Home: NextPage = () => {
                 <div className='bg-white dark:bg-slate-700 rounded-2xl sm:rounded-3xl p-2 sm:p-3 shadow-inner border-2 border-[#E8DEBB] dark:border-slate-600 overflow-hidden transition-colors duration-300'>
                   <div className='relative w-full aspect-[3/4]'>
                     <Image
-                      alt='修复前示例'
+                      alt={t.home.beforeExample}
                       src='/old.png'
                       className='w-full h-full object-contain rounded-xl'
                       fill
@@ -63,7 +63,7 @@ const Home: NextPage = () => {
                 <div className='bg-white dark:bg-slate-700 rounded-2xl sm:rounded-3xl p-2 sm:p-3 shadow-inner border-2 border-[#E8DEBB] dark:border-slate-600 overflow-hidden transition-colors duration-300'>
                   <div className='relative w-full aspect-[3/4]'>
                     <Image
-                      alt='修复后示例'
+                      alt={t.home.afterExample}
                       src='/new.jpeg'
                       className='w-full h-full object-contain rounded-xl'
                       fill

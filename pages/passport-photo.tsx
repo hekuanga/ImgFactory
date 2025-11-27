@@ -721,7 +721,7 @@ const PassportPhoto: NextPage = () => {
                 <path fillRule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z' clipRule='evenodd' />
               </svg>
               <div className='flex-1'>
-                <div className='font-bold text-base mb-2'>错误</div>
+                <div className='font-bold text-base mb-2'>{t.passportPhoto.errorTitle}</div>
                 <div className='text-sm whitespace-pre-line leading-relaxed'>
                   {error}
                 </div>
@@ -729,7 +729,7 @@ const PassportPhoto: NextPage = () => {
               <button
                 onClick={() => setError(null)}
                 className='flex-shrink-0 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200 transition-colors'
-                aria-label='关闭错误提示'
+                aria-label={t.passportPhoto.closeError}
               >
                 <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
@@ -900,7 +900,7 @@ const PassportPhoto: NextPage = () => {
           {/* 原图显示 */}
           {originalPhoto && !generatedPhoto && (
             <Image
-              alt='上传的照片'
+              alt={t.passportPhoto.uploadedPhoto}
               src={originalPhoto}
               className='rounded-2xl mt-4'
               width={475}
@@ -912,21 +912,21 @@ const PassportPhoto: NextPage = () => {
           {generatedPhoto && originalPhoto && (
             <div className='flex sm:space-x-4 sm:flex-row flex-col mt-4'>
               <div>
-                <h2 className='mb-1 font-medium text-lg'>原图</h2>
+                <h2 className='mb-1 font-medium text-lg'>{t.passportPhoto.originalImage}</h2>
                 <Image
-                  alt='原始照片'
+                  alt={t.passportPhoto.originalPhoto}
                   src={originalPhoto}
                   className='rounded-2xl relative'
                   width={400}
                   height={400}
-                  onError={() => console.error('原图加载失败')}
+                  onError={() => console.error(t.passportPhoto.originalImageLoadFailed)}
                 />
               </div>
               <div className='sm:mt-0 mt-8'>
                 <h2 className='mb-1 font-medium text-lg'>{t.passportPhoto.generatedPhoto}</h2>
                 <a href={generatedPhoto} target='_blank' rel='noreferrer'>
                   <Image
-                    alt='生成的证件照'
+                    alt={t.passportPhoto.generatedPhotoAlt}
                     src={generatedPhoto}
                     className='rounded-2xl relative sm:mt-0 mt-2 cursor-zoom-in'
                     width={400}

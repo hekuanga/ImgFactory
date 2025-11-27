@@ -242,7 +242,7 @@ const Home: NextPage = () => {
           <div className="relative max-w-5xl max-h-[90vh] flex flex-col items-center">
             <img 
               src={restoredImage || ''} 
-              alt="大图预览" 
+              alt={t.restore.largePreviewAlt} 
               className="max-w-full max-h-[80vh] object-contain"
             />
             <button 
@@ -275,12 +275,12 @@ const Home: NextPage = () => {
             className='bg-red-50 dark:bg-red-900/20 border-2 border-red-400 dark:border-red-500 text-red-800 dark:text-red-200 px-6 py-4 rounded-xl mb-6 max-w-3xl w-full shadow-lg animate-pulse'
             role='alert'
           >
-            <div className='flex items-start gap-3 mb-2'>
-              <svg className='w-6 h-6 flex-shrink-0 mt-0.5' fill='currentColor' viewBox='0 0 20 20'>
-                <path fillRule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z' clipRule='evenodd' />
-              </svg>
-              <div className='flex-1'>
-                <div className='font-bold text-base mb-2'>错误</div>
+              <div className='flex items-start gap-3 mb-2'>
+                <svg className='w-6 h-6 flex-shrink-0 mt-0.5' fill='currentColor' viewBox='0 0 20 20'>
+                  <path fillRule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z' clipRule='evenodd' />
+                </svg>
+                <div className='flex-1'>
+                  <div className='font-bold text-base mb-2'>{t.restore.errorTitle}</div>
                 <div className='text-sm whitespace-pre-line leading-relaxed'>
                   {error}
                 </div>
@@ -288,7 +288,7 @@ const Home: NextPage = () => {
               <button
                 onClick={() => setError(null)}
                 className='flex-shrink-0 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200 transition-colors'
-                aria-label='关闭错误提示'
+                aria-label={t.restore.closeError}
               >
                 <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                   <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
@@ -408,7 +408,7 @@ const Home: NextPage = () => {
                     <h2 className='mb-3 sm:mb-4 font-medium text-base sm:text-lg text-slate-700 dark:text-slate-300 transition-colors duration-300'>{t.restore.originalPhoto}</h2>
                     <div className='bg-white dark:bg-slate-700 rounded-2xl sm:rounded-3xl p-2 sm:p-4 shadow-inner border-2 border-[#E8DEBB] dark:border-slate-600 overflow-hidden transition-colors duration-300'>
                       <Image
-                        alt='修复前照片'
+                        alt={t.restore.beforePhoto}
                         src={originalPhoto}
                         className='w-full h-auto rounded-xl'
                         width={600}
@@ -429,7 +429,7 @@ const Home: NextPage = () => {
                       className='bg-white dark:bg-slate-700 rounded-2xl sm:rounded-3xl p-2 sm:p-4 shadow-inner border-2 border-[#E8DEBB] dark:border-slate-600 overflow-hidden cursor-zoom-in relative group transition-colors duration-300'
                     >
                       <Image
-                        alt='修复后'
+                        alt={t.restore.restoredPhoto}
                         src={restoredImage}
                         className='w-full h-auto rounded-xl transition-transform group-hover:scale-[1.02]'
                         width={600}
