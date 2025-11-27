@@ -181,17 +181,8 @@ const Home: NextPage = () => {
           errorMsg = typeof response.error === 'string' ? response.error : '照片修复失败，请稍后再试。';
         }
         
-        // 检查是否是敏感内容检测错误
-        if (errorMsg.includes('敏感内容') || errorMsg.includes('sensitive content')) {
-          errorMsg = language === 'zh' 
-            ? '图片内容检测：系统检测到图片可能包含敏感内容，无法进行处理。请尝试使用其他图片。'
-            : 'Image content detected: The system detected that the image may contain sensitive content and cannot be processed. Please try using a different image.';
-        } else if (errorMsg.includes('认证失败') || errorMsg.includes('Authentication failed')) {
-          errorMsg = language === 'zh'
-            ? 'API 认证失败：请检查服务器配置。'
-            : 'API authentication failed: Please check server configuration.';
-        }
-        
+        // 后端已经提供了详细的错误信息和建议，直接使用
+        // 不需要再次覆盖，保留后端返回的完整错误信息（包括建议）
         setError(errorMsg);
       } else {
         // 检查响应类型
