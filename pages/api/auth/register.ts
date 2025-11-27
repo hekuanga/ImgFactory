@@ -75,23 +75,60 @@ export default async function handler(
 
     // 注册成功
     if (result.user && result.session) {
-      // 同步创建 Prisma User 记录
+      const user = result.user; // 保存引用，避免TypeScript类型检查问题
+      const userId = user.id;
+      const userEmail = user.email;
+      
+      if (!userId) {
+        return res.status(500).json({
+          success: false,
+          error: 'User ID is missing'
+        });
+      }
+      
+      // 同步创建 Prisma User 记录，并赠送新用户1积分
       try {
-        await prisma.user.upsert({
-          where: { id: result.user.id },
-          update: {
-            email: result.user.email || email,
-            emailVerified: result.user.email_confirmed_at ? true : false,
-            name: result.user.user_metadata?.name || metadata?.name || null,
-            image: result.user.user_metadata?.avatar_url || null,
-          },
-          create: {
-            id: result.user.id,
-            email: result.user.email || email,
-            emailVerified: result.user.email_confirmed_at ? true : false,
-            name: result.user.user_metadata?.name || metadata?.name || null,
-            image: result.user.user_metadata?.avatar_url || null,
-          },
+        // 先检查用户是否已存在
+        const existingUser = await (prisma.user.findUnique as any)({
+          where: { id: userId },
+          select: { id: true }
+        });
+
+        const isNewUser = !existingUser;
+
+        // 使用事务确保数据一致性
+        await prisma.$transaction(async (tx: any) => {
+          // 创建或更新用户
+          await tx.user.upsert({
+            where: { id: userId },
+            update: {
+              email: userEmail || email,
+              emailVerified: user.email_confirmed_at ? true : false,
+              name: user.user_metadata?.name || metadata?.name || null,
+              image: user.user_metadata?.avatar_url || null,
+            },
+            create: {
+              id: userId,
+              email: userEmail || email,
+              emailVerified: user.email_confirmed_at ? true : false,
+              name: user.user_metadata?.name || metadata?.name || null,
+              image: user.user_metadata?.avatar_url || null,
+              credits: isNewUser ? 1 : 0, // 新用户赠送1积分
+            },
+          });
+
+          // 如果是新用户，记录积分历史
+          if (isNewUser) {
+            await tx.creditHistory.create({
+              data: {
+                userId: userId,
+                amount: 1,
+                type: 'bonus',
+                description: '新用户注册奖励'
+              }
+            });
+            console.log(`New user registered: ${userId}, bonus 1 credit added`);
+          }
         });
       } catch (dbError) {
         console.error('Failed to sync user to database:', dbError);
@@ -101,9 +138,9 @@ export default async function handler(
       return res.status(201).json({
         success: true,
         user: {
-          id: result.user.id,
-          email: result.user.email,
-          ...(result.user.user_metadata && { metadata: result.user.user_metadata })
+          id: userId,
+          email: userEmail,
+          ...(user.user_metadata && { metadata: user.user_metadata })
         },
         session: {
           access_token: result.session.access_token,
@@ -116,34 +153,71 @@ export default async function handler(
 
     // 如果用户已存在但需要邮箱验证
     if (result.user && !result.session) {
-      // 同步创建 Prisma User 记录（即使需要验证）
+      const user = result.user; // 保存引用，避免TypeScript类型检查问题
+      const userId = user.id;
+      const userEmail = user.email;
+      
+      if (!userId) {
+        return res.status(500).json({
+          success: false,
+          error: 'User ID is missing'
+        });
+      }
+      
+      // 同步创建 Prisma User 记录（即使需要验证），并赠送新用户1积分
       try {
-        await prisma.user.upsert({
-          where: { id: result.user.id },
-          update: {
-            email: result.user.email || email,
-            emailVerified: false,
-            name: result.user.user_metadata?.name || metadata?.name || null,
-            image: result.user.user_metadata?.avatar_url || null,
-          },
-          create: {
-            id: result.user.id,
-            email: result.user.email || email,
-            emailVerified: false,
-            name: result.user.user_metadata?.name || metadata?.name || null,
-            image: result.user.user_metadata?.avatar_url || null,
-          },
+        // 先检查用户是否已存在
+        const existingUser = await (prisma.user.findUnique as any)({
+          where: { id: userId },
+          select: { id: true }
+        });
+
+        const isNewUser = !existingUser;
+
+        // 使用事务确保数据一致性
+        await prisma.$transaction(async (tx: any) => {
+          // 创建或更新用户
+          await tx.user.upsert({
+            where: { id: userId },
+            update: {
+              email: userEmail || email,
+              emailVerified: false,
+              name: user.user_metadata?.name || metadata?.name || null,
+              image: user.user_metadata?.avatar_url || null,
+            },
+            create: {
+              id: userId,
+              email: userEmail || email,
+              emailVerified: false,
+              name: user.user_metadata?.name || metadata?.name || null,
+              image: user.user_metadata?.avatar_url || null,
+              credits: isNewUser ? 1 : 0, // 新用户赠送1积分
+            },
+          });
+
+          // 如果是新用户，记录积分历史
+          if (isNewUser) {
+            await tx.creditHistory.create({
+              data: {
+                userId: userId,
+                amount: 1,
+                type: 'bonus',
+                description: '新用户注册奖励'
+              }
+            });
+            console.log(`New user registered (email verification required): ${userId}, bonus 1 credit added`);
+          }
         });
       } catch (dbError) {
         console.error('Failed to sync user to database:', dbError);
         // 不阻止注册流程，只记录错误
       }
-
+      
       return res.status(200).json({
         success: true,
         user: {
-          id: result.user.id,
-          email: result.user.email
+          id: userId,
+          email: userEmail
         },
         message: 'Registration successful. Please check your email to verify your account.'
       });
