@@ -132,7 +132,7 @@ const Credits: NextPage = () => {
   return (
     <div className='flex max-w-7xl mx-auto flex-col items-center justify-center min-h-screen bg-[#F7F4E9] dark:bg-slate-900 transition-colors duration-300'>
       <Head>
-        <title>{language === 'zh' ? '充值积分' : 'Recharge Credits'} - {t.nav.studio}</title>
+        <title>{`${language === 'zh' ? '充值积分' : 'Recharge Credits'} - ${t.nav.studio}`}</title>
       </Head>
       <Header />
       <main className='flex flex-1 w-full flex-col items-center justify-start px-4 sm:px-6 lg:px-8 py-6 sm:py-8'>

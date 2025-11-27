@@ -69,12 +69,14 @@ export default async function handler(
         credits: userRecord.credits || 0
       });
     } catch (dbError: any) {
-      // 处理数据库连接错误，优雅降级
+      // 处理数据库连接错误和列不存在错误，优雅降级
       if (dbError?.message?.includes('Can\'t reach database') || 
           dbError?.message?.includes('connect') ||
-          dbError?.code === 'P1001') {
-        console.warn('Database connection error, returning default credits:', dbError.message);
-        // 数据库不可用时，返回默认值0，而不是错误
+          dbError?.code === 'P1001' ||
+          dbError?.code === 'P2022' || // Column does not exist
+          dbError?.message?.includes('does not exist')) {
+        console.warn('Database error (connection or schema), returning default credits:', dbError.message);
+        // 数据库不可用或列不存在时，返回默认值0，而不是错误
         return res.status(200).json({
           success: true,
           credits: 0
@@ -85,11 +87,14 @@ export default async function handler(
     }
   } catch (error) {
     console.error('Get credits balance error:', error);
-    // 最后的错误处理，如果是数据库连接错误，返回默认值
+    // 最后的错误处理，如果是数据库连接错误或列不存在，返回默认值
     const errorMessage = error instanceof Error ? error.message : 'Internal server error';
+    const errorCode = (error as any)?.code;
     if (errorMessage.includes('Can\'t reach database') || 
         errorMessage.includes('connect') ||
-        (error as any)?.code === 'P1001') {
+        errorMessage.includes('does not exist') ||
+        errorCode === 'P1001' ||
+        errorCode === 'P2022') {
       return res.status(200).json({
         success: true,
         credits: 0

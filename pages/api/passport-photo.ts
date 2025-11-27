@@ -514,8 +514,13 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
                   console.warn('用户积分不足，但已生成证件照');
                 }
               }
-            } catch (creditError) {
-              console.error('扣除积分时出错:', creditError);
+            } catch (creditError: any) {
+              // 如果是列不存在错误（P2022），静默处理
+              if (creditError?.code === 'P2022' || creditError?.message?.includes('does not exist')) {
+                console.warn('Credits column does not exist in database, skipping credit deduction');
+              } else {
+                console.error('扣除积分时出错:', creditError);
+              }
             }
             
             // 返回生成的图像URL和使用的模型

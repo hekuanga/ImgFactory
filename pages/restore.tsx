@@ -214,7 +214,7 @@ const Home: NextPage = () => {
   return (
     <div className='flex max-w-7xl mx-auto flex-col items-center justify-start py-2 min-h-screen bg-[#F7F4E9] dark:bg-slate-900 transition-colors duration-300'>
       <Head>
-        <title>{t.restore.title} - {t.nav.studio}</title>
+        <title>{`${t.restore.title} - ${t.nav.studio}`}</title>
         <link rel='icon' href='/favicon.ico' />
       </Head>
 
