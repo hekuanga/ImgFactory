@@ -35,18 +35,53 @@ export const en = {
     loading: 'Processing...',
     error: 'An error occurred',
     fileSizeExceeded: 'Image size cannot exceed 20MB',
+    uploadNewPhoto: 'Upload New Photo',
+    // Model names
+    modelArkSDK: 'Ark SDK',
+    modelReplicate: 'Replicate',
+    // Model descriptions
+    arkSDKDesc: 'Ark SDK: Doubao official AI model, high color reproduction, more natural details',
+    replicateDesc: 'Replicate: Open source model, faster response speed',
+    modelSwitchNote: 'When the preferred model call fails, the system will automatically try the alternative model',
   },
   // Passport photo page
   passportPhoto: {
-    title: 'Generate Passport Photo',
-    selectSize: 'Select Size',
-    selectBackground: 'Select Background',
-    selectClothing: 'Select Clothing',
-    selectModel: 'Select Model',
+    title: 'Generate Your Standard ID Photo',
+    selectSize: 'ID Photo Size',
+    selectBackground: 'Background Color',
+    selectClothing: 'Clothing Style',
+    selectModel: 'Generation Model',
     uploadPhoto: 'Upload Photo',
-    generate: 'Generate',
+    generate: 'Generate ID Photo',
     loading: 'Generating...',
     fileSizeExceeded: 'Image size cannot exceed 20MB',
+    uploadNewPhoto: 'Upload New Photo',
+    regenerate: 'Regenerate',
+    download: 'Download ID Photo',
+    customSize: 'Custom Size',
+    customBackground: 'Custom Background Color',
+    generatedPhoto: 'Generated ID Photo',
+    // Size options
+    size1Inch: '1 inch',
+    size2Inch: '2 inch',
+    sizePassport: 'Passport',
+    sizeCustom: 'Custom',
+    // Background colors
+    bgWhite: 'White',
+    bgBlue: 'Blue',
+    bgRed: 'Red',
+    bgCustom: 'Custom',
+    // Clothing styles
+    clothingFormalShirt: 'Formal Shirt',
+    clothingSuit: 'Suit',
+    clothingCasual: 'Casual',
+    // Model names
+    modelArkSDK: 'Ark SDK',
+    modelReplicate: 'Replicate',
+    // Model descriptions
+    arkSDKDesc: 'Ark SDK: Doubao official AI model, high color reproduction, more natural portrait details',
+    replicateDesc: 'Replicate: Third-party open-source model, faster response speed, suitable for simple ID photo generation',
+    modelSwitchNote: 'When the preferred model call fails, the system will automatically try the alternative model',
   },
   // Common
   common: {

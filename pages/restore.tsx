@@ -309,9 +309,9 @@ const Home: NextPage = () => {
                   : 'bg-[#F7F4E9] dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-[#E8DEBB] dark:border-slate-600 hover:bg-[#FCF7E3] dark:hover:bg-slate-600'}`}
                 onClick={() => setSelectedModel('replicate')}
                 disabled={loading}
-                title="Replicate - 开源模型，响应速度较快"
+                title={language === 'zh' ? 'Replicate - 开源模型，响应速度较快' : 'Replicate - Open source model, faster response speed'}
               >
-                Replicate
+                {t.restore.modelReplicate}
               </button>
               <button
                 className={`px-4 py-2 rounded-lg font-medium transition ${selectedModel === 'ark' 
@@ -319,15 +319,15 @@ const Home: NextPage = () => {
                   : 'bg-[#F7F4E9] text-slate-700 border border-[#E8DEBB] hover:bg-[#FCF7E3]'}`}
                 onClick={() => setSelectedModel('ark')}
                 disabled={loading}
-                title="方舟SDK - 豆包官方AI模型，细节还原更自然"
+                title={language === 'zh' ? '方舟SDK - 豆包官方AI模型，细节还原更自然' : 'Ark SDK - Doubao official AI model, more natural details'}
               >
-                方舟SDK
+                {t.restore.modelArkSDK}
               </button>
             </div>
             <p className='text-xs text-slate-600 text-left leading-relaxed'>
-              * 方舟SDK: 豆包官方AI模型，色彩还原度高，细节更自然<br/>
-              * Replicate: 开源模型，响应速度较快<br/>
-              * 当首选模型调用失败时，系统会自动尝试备选模型
+              * {t.restore.arkSDKDesc}<br/>
+              * {t.restore.replicateDesc}<br/>
+              * {t.restore.modelSwitchNote}
             </p>
           </div>
         </div>
@@ -468,7 +468,7 @@ const Home: NextPage = () => {
                 }}
                 className='bg-black rounded-xl text-white font-medium px-6 py-3 hover:bg-black/80 transition shadow-lg'
               >
-                上传新照片
+                {t.restore.uploadNewPhoto}
               </button>
             )}
             {restoredLoaded && originalPhoto && (

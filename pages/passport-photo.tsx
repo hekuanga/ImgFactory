@@ -679,7 +679,7 @@ const PassportPhoto: NextPage = () => {
   return (
     <div className='flex max-w-6xl mx-auto flex-col items-center justify-start py-2 min-h-screen'>
       <Head>
-        <title>生成您的标准证件照</title>
+        <title>{t.passportPhoto.title}</title>
         <link rel='icon' href='/favicon.ico' />
       </Head>
 
@@ -687,7 +687,7 @@ const PassportPhoto: NextPage = () => {
       <main className='flex flex-1 w-full flex-col items-center justify-start text-center px-4 pt-16 pb-6'>
         
         <h1 className='mx-auto max-w-4xl font-display text-4xl sm:text-6xl font-bold tracking-normal text-slate-900 mb-5'>
-          生成您的标准证件照
+          {t.passportPhoto.title}
         </h1>
         
         {/* 剩余次数提示 - 暂时隐藏 */}
@@ -748,23 +748,28 @@ const PassportPhoto: NextPage = () => {
             <div className='w-full max-w-2xl mt-6 grid grid-cols-1 md:grid-cols-3 gap-6'>
               {/* 尺寸选择 */}
               <div className='bg-white p-4 rounded-xl shadow-lg border-2 border-[#E8DEBB]'>
-                <h3 className='font-medium mb-3 text-left text-slate-700'>证件照尺寸</h3>
+                <h3 className='font-medium mb-3 text-left text-slate-700'>{t.passportPhoto.selectSize}</h3>
                 <div className='flex flex-wrap gap-2'>
-                  {['1寸', '2寸', '护照', '自定义'].map((item) => (
+                  {[
+                    { key: '1寸', value: t.passportPhoto.size1Inch },
+                    { key: '2寸', value: t.passportPhoto.size2Inch },
+                    { key: '护照', value: t.passportPhoto.sizePassport },
+                    { key: '自定义', value: t.passportPhoto.sizeCustom }
+                  ].map(({ key, value }) => (
                     <button
-                      key={item}
-                      className={`px-3 py-1 rounded-full text-sm transition ${(size === item || (item === '自定义' && size.startsWith('custom-'))) 
+                      key={key}
+                      className={`px-3 py-1 rounded-full text-sm transition ${(size === key || (key === '自定义' && size.startsWith('custom-'))) 
                         ? 'bg-black text-white shadow-md' 
                         : 'bg-[#F7F4E9] text-slate-700 border border-[#E8DEBB] hover:bg-[#FCF7E3]'}`}
                       onClick={() => {
-                        if (item === '自定义') {
+                        if (key === '自定义') {
                           setShowCustomSizeModal(true);
                         } else {
-                          setSize(item);
+                          setSize(key);
                         }
                       }}
                     >
-                      {item}
+                      {value}
                     </button>
                   ))}
                 </div>
@@ -772,9 +777,14 @@ const PassportPhoto: NextPage = () => {
 
               {/* 背景颜色选择 */}
               <div className='bg-white p-4 rounded-xl shadow-lg border-2 border-[#E8DEBB]'>
-                <h3 className='font-medium mb-3 text-left text-slate-700'>背景颜色</h3>
+                <h3 className='font-medium mb-3 text-left text-slate-700'>{t.passportPhoto.selectBackground}</h3>
                 <div className='flex flex-wrap gap-2'>
-                  {['白', '蓝', '红', '自定义'].map((color) => (
+                  {[
+                    { key: '白', value: t.passportPhoto.bgWhite },
+                    { key: '蓝', value: t.passportPhoto.bgBlue },
+                    { key: '红', value: t.passportPhoto.bgRed },
+                    { key: '自定义', value: t.passportPhoto.bgCustom }
+                  ].map(({ key: color, value: colorLabel }) => (
                     <button
                       key={color}
                       className={`relative px-3 py-1 rounded-full text-sm transition ${
@@ -806,7 +816,7 @@ const PassportPhoto: NextPage = () => {
                       ></span>
                       {color === '自定义' && backgroundColor.startsWith('custom-') 
                         ? backgroundColor.replace('custom-', '') 
-                        : color
+                        : colorLabel
                       }
                     </button>
                   ))}
@@ -815,18 +825,22 @@ const PassportPhoto: NextPage = () => {
 
               {/* 服装样式选择 */}
               <div className='bg-white p-4 rounded-xl shadow-lg border-2 border-[#E8DEBB]'>
-                <h3 className='font-medium mb-3 text-left text-slate-700'>服装样式</h3>
+                <h3 className='font-medium mb-3 text-left text-slate-700'>{t.passportPhoto.selectClothing}</h3>
                 <div className='flex flex-wrap gap-2'>
-                  {['正装衬衫', '西服', '休闲装'].map((style) => (
+                  {[
+                    { key: '正装衬衫', value: t.passportPhoto.clothingFormalShirt },
+                    { key: '西服', value: t.passportPhoto.clothingSuit },
+                    { key: '休闲装', value: t.passportPhoto.clothingCasual }
+                  ].map(({ key, value }) => (
                     <button
-                      key={style}
-                      className={`px-3 py-1 rounded-full text-sm transition ${clothingStyle === style 
+                      key={key}
+                      className={`px-3 py-1 rounded-full text-sm transition ${clothingStyle === key 
                         ? 'bg-black text-white shadow-md' 
                         : 'bg-[#F7F4E9] text-slate-700 border border-[#E8DEBB] hover:bg-[#FCF7E3]'}`}
-                      onClick={() => setClothingStyle(style)}
+                      onClick={() => setClothingStyle(key)}
                       disabled={loading}
                     >
-                      {style}
+                      {value}
                     </button>
                   ))}
                 </div>
@@ -834,7 +848,7 @@ const PassportPhoto: NextPage = () => {
               
               {/* 模型选择 */}
               <div className='bg-white p-4 rounded-xl shadow-lg border-2 border-[#E8DEBB] md:col-span-3'>
-                <h3 className='font-medium mb-3 text-left text-slate-700'>生成模型</h3>
+                <h3 className='font-medium mb-3 text-left text-slate-700'>{t.passportPhoto.selectModel}</h3>
                 <div className='flex flex-wrap gap-2'>
                   <button
                     className={`px-3 py-1 rounded-full text-sm transition ${selectedModel === 'ark' 
@@ -842,9 +856,9 @@ const PassportPhoto: NextPage = () => {
                       : 'bg-[#F7F4E9] text-slate-700 border border-[#E8DEBB] hover:bg-[#FCF7E3]'}`}
                     onClick={() => setSelectedModel('ark')}
                     disabled={loading}
-                    title="方舟SDK - 豆包生成模型，效果更好，色彩更自然"
+                    title={language === 'zh' ? '方舟SDK - 豆包生成模型，效果更好，色彩更自然' : 'Ark SDK - Doubao generation model, better effect, more natural colors'}
                   >
-                    方舟SDK (doubao-seedream-4-0-250828)
+                    {t.passportPhoto.modelArkSDK} (doubao-seedream-4-0-250828)
                   </button>
                   <button
                     className={`px-3 py-1 rounded-full text-sm transition ${selectedModel === 'replicate' 
@@ -852,15 +866,15 @@ const PassportPhoto: NextPage = () => {
                       : 'bg-[#F7F4E9] text-slate-700 border border-[#E8DEBB] hover:bg-[#FCF7E3]'}`}
                     onClick={() => setSelectedModel('replicate')}
                     disabled={loading}
-                    title="Replicate - faceshots模型，适合快速生成和背景更换"
+                    title={language === 'zh' ? 'Replicate - faceshots模型，适合快速生成和背景更换' : 'Replicate - faceshots model, suitable for quick generation and background replacement'}
                   >
-                    Replicate (editr-apps/faceshots v1.0)
+                    {t.passportPhoto.modelReplicate} (editr-apps/faceshots v1.0)
                   </button>
                 </div>
                 <p className='mt-2 text-xs text-slate-600 text-left leading-relaxed'>
-                  * 方舟SDK: 豆包官方AI模型，色彩还原度高，人像细节更自然<br/>
-                  * Replicate: 第三方开源模型，响应速度较快，适合简单证件照生成<br/>
-                  * 当首选模型调用失败时，系统会自动尝试备选模型
+                  * {t.passportPhoto.arkSDKDesc}<br/>
+                  * {t.passportPhoto.replicateDesc}<br/>
+                  * {t.passportPhoto.modelSwitchNote}
                 </p>
               </div>
             </div>
@@ -876,7 +890,7 @@ const PassportPhoto: NextPage = () => {
               {loading ? (
                 <LoadingDots color='white' style='large' />
               ) : (
-                '生成证件照'
+                t.passportPhoto.generate
               )}
             </button>
           )}
@@ -909,7 +923,7 @@ const PassportPhoto: NextPage = () => {
                 />
               </div>
               <div className='sm:mt-0 mt-8'>
-                <h2 className='mb-1 font-medium text-lg'>生成的证件照</h2>
+                <h2 className='mb-1 font-medium text-lg'>{t.passportPhoto.generatedPhoto}</h2>
                 <a href={generatedPhoto} target='_blank' rel='noreferrer'>
                   <Image
                     alt='生成的证件照'
@@ -933,7 +947,7 @@ const PassportPhoto: NextPage = () => {
           {showCustomSizeModal && (
             <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
               <div className='bg-white rounded-xl p-6 max-w-md w-full mx-4'>
-                <h3 className='text-xl font-bold mb-4'>自定义尺寸</h3>
+                <h3 className='text-xl font-bold mb-4'>{t.passportPhoto.customSize}</h3>
                 <div className='space-y-4'>
                   <div>
                     <label className='block text-sm font-medium text-slate-700 mb-1'>宽度 (像素)</label>
@@ -992,7 +1006,7 @@ const PassportPhoto: NextPage = () => {
           {showCustomColorPicker && (
             <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
               <div className='bg-white rounded-xl p-6 max-w-md w-full mx-4'>
-                <h3 className='text-xl font-bold mb-4'>自定义背景颜色</h3>
+                <h3 className='text-xl font-bold mb-4'>{t.passportPhoto.customBackground}</h3>
                 <div className='space-y-4'>
                   <div className='flex items-center space-x-4'>
                     <div 
@@ -1061,7 +1075,7 @@ const PassportPhoto: NextPage = () => {
           }}
                 className='bg-white rounded-xl text-slate-700 border-2 border-[#E8DEBB] font-medium px-4 py-2 hover:bg-[#F7F4E9] transition shadow-md'
               >
-                上传新照片
+                {t.passportPhoto.uploadNewPhoto}
               </button>
             )}
             {generatedPhoto && (
@@ -1082,7 +1096,7 @@ const PassportPhoto: NextPage = () => {
                 disabled={loading || remainingGenerations <= 0}
                 className={`bg-white rounded-xl text-slate-700 border-2 border-[#E8DEBB] font-medium px-4 py-2 hover:bg-[#F7F4E9] transition shadow-md ${remainingGenerations <= 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                重新生成
+                {t.passportPhoto.regenerate}
               </button>
             )}
             {photoLoaded && generatedPhoto && (
@@ -1092,7 +1106,7 @@ const PassportPhoto: NextPage = () => {
                 }}
                 className='bg-black rounded-xl text-white font-medium px-4 py-2 hover:bg-black/80 transition'
               >
-                下载证件照
+                {t.passportPhoto.download}
               </button>
             )}
           </div>

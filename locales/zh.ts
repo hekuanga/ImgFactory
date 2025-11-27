@@ -35,18 +35,53 @@ export const zh = {
     loading: '处理中...',
     error: '发生错误',
     fileSizeExceeded: '图片大小不能超过20MB',
+    uploadNewPhoto: '上传新照片',
+    // Model names
+    modelArkSDK: '方舟SDK',
+    modelReplicate: 'Replicate',
+    // Model descriptions
+    arkSDKDesc: '方舟SDK: 豆包官方AI模型，色彩还原度高，细节更自然',
+    replicateDesc: 'Replicate: 开源模型，响应速度较快',
+    modelSwitchNote: '当首选模型调用失败时，系统会自动尝试备选模型',
   },
   // 证件照页面
   passportPhoto: {
-    title: '生成证件照',
-    selectSize: '选择尺寸',
-    selectBackground: '选择背景',
-    selectClothing: '选择服装',
-    selectModel: '选择模型',
+    title: '生成您的标准证件照',
+    selectSize: '证件照尺寸',
+    selectBackground: '背景颜色',
+    selectClothing: '服装样式',
+    selectModel: '生成模型',
     uploadPhoto: '上传照片',
-    generate: '生成',
+    generate: '生成证件照',
     loading: '生成中...',
     fileSizeExceeded: '图片大小不能超过20MB',
+    uploadNewPhoto: '上传新照片',
+    regenerate: '重新生成',
+    download: '下载证件照',
+    customSize: '自定义尺寸',
+    customBackground: '自定义背景颜色',
+    generatedPhoto: '生成的证件照',
+    // Size options
+    size1Inch: '1寸',
+    size2Inch: '2寸',
+    sizePassport: '护照',
+    sizeCustom: '自定义',
+    // Background colors
+    bgWhite: '白',
+    bgBlue: '蓝',
+    bgRed: '红',
+    bgCustom: '自定义',
+    // Clothing styles
+    clothingFormalShirt: '正装衬衫',
+    clothingSuit: '西服',
+    clothingCasual: '休闲装',
+    // Model names
+    modelArkSDK: '方舟SDK',
+    modelReplicate: 'Replicate',
+    // Model descriptions
+    arkSDKDesc: '方舟SDK: 豆包官方AI模型，色彩还原度高，人像细节更自然',
+    replicateDesc: 'Replicate: 第三方开源模型，响应速度较快，适合简单证件照生成',
+    modelSwitchNote: '当首选模型调用失败时，系统会自动尝试备选模型',
   },
   // 通用
   common: {
