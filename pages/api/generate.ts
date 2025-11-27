@@ -45,7 +45,7 @@ async function callArkSDK(imageUrl: string): Promise<{ success: boolean; result?
     try {
         // 构建方舟SDK请求参数
         // 恢复到最初版本：不使用负面提示词，避免触发敏感内容检测
-        const prompt = `专业照片修复和色彩还原，高清细节，自然真实的色彩还原，准确还原原始色彩和色调，保持照片的原始风格和时代特征，现代感处理，去除老化痕迹，修复划痕和破损，增强清晰度，保持照片完整性，不裁切，完整保留原图主体内容`;
+        const prompt = `专业照片修复和色彩还原，高清细节，自然真实的色彩还原，准确还原色彩，保持照片风格和时代特征，去除老化痕迹，修复划痕和破损，增强清晰度，保持照片完整性，不裁切，完整保留原图主体内容`;
         
         // 不使用负面提示词，避免触发敏感内容检测误判
         const fullPrompt = prompt;
@@ -160,8 +160,10 @@ async function callArkSDK(imageUrl: string): Promise<{ success: boolean; result?
             errorMessage = '提示词检测：系统检测到提示词可能包含敏感内容。请尝试使用其他图片或联系客服。\nText content detected: The system detected that the prompt may contain sensitive content. Please try using a different image or contact support.';
           } else if (errorCode === 'OutputImageSensitiveContentDetected' || 
                      (typeof errorDetailText === 'string' && errorDetailText.toLowerCase().includes('output image') && errorDetailText.toLowerCase().includes('sensitive'))) {
-            // 输出图片敏感内容检测错误
-            errorMessage = '输出图片检测：系统检测到生成的图片可能包含敏感内容，无法返回结果。这可能是由于AI误判，请尝试使用其他图片或调整提示词。\nOutput image detected: The system detected that the generated image may contain sensitive content and cannot return the result. This may be a false positive, please try using a different image or adjusting the prompt.';
+            // 输出图片敏感内容检测错误 - 这是误判，不重试方舟SDK，直接切换到Replicate
+            const sensitiveError = new Error('OUTPUT_SENSITIVE_DETECTED');
+            (sensitiveError as any).isSensitiveContentError = true;
+            throw sensitiveError; // 立即抛出，不重试
           } else {
             errorMessage = `方舟SDK API请求格式错误: ${errorDetailText.substring(0, 200)}\nRequest format error: Please check request parameters`;
           }
@@ -227,6 +229,16 @@ async function callArkSDK(imageUrl: string): Promise<{ success: boolean; result?
         throw new Error('方舟SDK返回了无效的输出格式：响应中未找到 data 数组或 url 字段');
       }
     } catch (error) {
+      // 检查是否是敏感内容检测错误，如果是则不重试，直接返回
+      if (error instanceof Error && (error as any).isSensitiveContentError) {
+        console.warn('检测到输出图片敏感内容误判，跳过重试，将切换到Replicate');
+        return { 
+          success: false, 
+          error: 'OUTPUT_SENSITIVE_DETECTED',
+          shouldSwitchToReplicate: true 
+        } as any;
+      }
+      
       // 详细的错误日志
       console.error(`方舟SDK API调用失败 (尝试 ${retryCount + 1}/${maxRetries + 1}):`, error);
       if (error instanceof Error) {
@@ -637,7 +649,12 @@ export default async function handler(
           usedModel: '方舟SDK'
         };
       } else {
-        console.warn('方舟SDK调用失败，尝试切换到Replicate:', arkResult.error);
+        // 检查是否是敏感内容检测错误
+        const isSensitiveError = (arkResult as any).shouldSwitchToReplicate === true;
+        const errorMsg = isSensitiveError 
+          ? '方舟SDK检测到敏感内容（可能是误判），已自动切换到Replicate模型'
+          : '方舟SDK调用失败，尝试切换到Replicate';
+        console.warn(errorMsg, arkResult.error);
         
         // 尝试备用模型
         hasAttemptedReplicate = true;
@@ -647,7 +664,9 @@ export default async function handler(
           finalResult = {
             imageUrl: replicateResult.result,
             usedModel: 'Replicate',
-            modelSwitchInfo: '方舟SDK暂时不可用，已自动切换到Replicate模型'
+            modelSwitchInfo: isSensitiveError 
+              ? '方舟SDK检测到敏感内容（可能是误判），已自动切换到Replicate模型'
+              : '方舟SDK暂时不可用，已自动切换到Replicate模型'
           };
         }
       }
