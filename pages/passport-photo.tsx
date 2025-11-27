@@ -56,7 +56,7 @@ const PassportPhoto: NextPage = () => {
     editor: { images: { crop: false } },
     styles: { 
       colors: { primary: '#000' },
-      fonts: { base: 'system-ui, -apple-system, sans-serif' }
+      fontFamilies: { base: 'system-ui, -apple-system, sans-serif' }
     },
     locale: {
       'orDragDrop': '或拖拽图片到此处',
