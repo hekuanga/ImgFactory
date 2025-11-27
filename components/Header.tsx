@@ -141,9 +141,9 @@ export default function Header() {
         {/* 导航栏容器 */}
         <div className='flex justify-between items-center w-full pt-6 pb-5 sm:pt-8 sm:pb-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex-wrap gap-3'>
           {/* 左侧：品牌标识 + 导航按钮 */}
-          <div className='flex items-center gap-2 sm:gap-3 lg:gap-4 xl:gap-5 flex-1 flex-wrap'>
+          <div className='flex items-center gap-2 sm:gap-3 lg:gap-4 xl:gap-5 flex-1 flex-wrap min-w-0 justify-start'>
             {/* 蓝星照相馆品牌标识（非按钮） */}
-            <div className='relative flex items-center gap-1.5 sm:gap-2 lg:gap-2.5'>
+            <div className='relative flex items-center gap-1.5 sm:gap-2 lg:gap-2.5 flex-shrink-0'>
               <div
                 ref={logoButtonRef}
                 className={`
@@ -183,7 +183,7 @@ export default function Header() {
             </div>
 
             {/* 导航按钮组 - 单行排列 */}
-            <nav className='flex items-center gap-1.5 sm:gap-2 lg:gap-2.5 xl:gap-3 flex-wrap'>
+            <nav className='flex items-center gap-1.5 sm:gap-2 lg:gap-2.5 xl:gap-3 flex-wrap flex-shrink-0'>
               {/* 首页按钮 */}
               <Link href='/' className='relative block'>
                 <button
@@ -250,7 +250,7 @@ export default function Header() {
           </div>
 
         {/* 用户操作区域 - 右侧 */}
-        <div className='flex items-center gap-2 sm:gap-2.5 lg:gap-3 flex-shrink-0 flex-wrap justify-end'>
+        <div className='flex items-center gap-2 sm:gap-2.5 lg:gap-3 flex-shrink-0 flex-wrap justify-end min-w-0'>
           {/* 语言和主题切换按钮 */}
           <LanguageToggle />
           <ThemeToggle />
@@ -313,14 +313,14 @@ export default function Header() {
               </div>
               
               {/* 邮箱地址 - 响应式显示 */}
-              <div className='text-xs sm:text-sm text-slate-700 dark:text-slate-300 hidden lg:block whitespace-nowrap max-w-[180px] xl:max-w-[220px] truncate px-2'>
+              <div className='text-xs sm:text-sm text-slate-700 dark:text-slate-300 hidden lg:block whitespace-nowrap max-w-[160px] xl:max-w-[200px] truncate px-2 flex-shrink-0'>
                 {user.email}
               </div>
               
               {/* 登出按钮 */}
               <button
                 onClick={handleSignOut}
-                className='text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition whitespace-nowrap px-2 sm:px-2.5 py-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800'
+                className='text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 transition whitespace-nowrap px-2 sm:px-2.5 py-1 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 flex-shrink-0'
               >
                 {t.user.logout}
               </button>
