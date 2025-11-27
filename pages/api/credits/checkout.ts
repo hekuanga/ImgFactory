@@ -55,8 +55,17 @@ export default async function handler(
     const totalPrice = price;
 
     // 获取站点 URL
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+    // 优先使用环境变量，然后是Vercel自动提供的URL，最后是localhost
+    let siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    if (!siteUrl) {
+      if (process.env.VERCEL_URL) {
+        siteUrl = `https://${process.env.VERCEL_URL}`;
+      } else {
+        siteUrl = 'http://localhost:3000';
+      }
+    }
+    // 确保URL不以斜杠结尾
+    siteUrl = siteUrl.replace(/\/$/, '');
 
     // 获取或创建 Stripe Customer
     const customer = await getOrCreateStripeCustomer(user.id, user.email);

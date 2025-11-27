@@ -8,7 +8,7 @@ import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import Link from 'next/link';
 
-const CreditsSuccess: NextPage = () => {
+const CreditsSuccessPage: NextPage = () => {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const { t, language } = useTranslation();
@@ -135,5 +135,5 @@ const CreditsSuccess: NextPage = () => {
   );
 };
 
-export default CreditsSuccess;
+export default CreditsSuccessPage;
 
