@@ -677,16 +677,16 @@ const PassportPhoto: NextPage = () => {
   }
 
   return (
-    <div className='flex max-w-6xl mx-auto flex-col items-center justify-start py-2 min-h-screen'>
+    <div className='flex max-w-7xl mx-auto flex-col items-center justify-start py-2 min-h-screen bg-[#F7F4E9] dark:bg-slate-900 transition-colors duration-300'>
       <Head>
         <title>{t.passportPhoto.title}</title>
         <link rel='icon' href='/favicon.ico' />
       </Head>
 
       <Header />
-      <main className='flex flex-1 w-full flex-col items-center justify-start text-center px-4 pt-16 pb-6'>
+      <main className='flex flex-1 w-full flex-col items-center justify-start text-center px-4 sm:px-6 lg:px-8 pt-16 pb-6'>
         
-        <h1 className='mx-auto max-w-4xl font-display text-4xl sm:text-6xl font-bold tracking-normal text-slate-900 mb-5'>
+        <h1 className='mx-auto max-w-5xl font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-normal text-slate-900 dark:text-slate-100 mb-5 transition-colors duration-300'>
           {t.passportPhoto.title}
         </h1>
         

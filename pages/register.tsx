@@ -96,12 +96,12 @@ const Register: NextPage = () => {
   }
 
   return (
-    <div className='flex max-w-6xl mx-auto flex-col items-center justify-center py-2 min-h-screen'>
+    <div className='flex max-w-7xl mx-auto flex-col items-center justify-center py-2 min-h-screen bg-[#F7F4E9] dark:bg-slate-900 transition-colors duration-300'>
       <Head>
         <title>注册 - 照片修复工具</title>
       </Head>
       <Header />
-      <main className='flex flex-1 w-full flex-col items-center justify-center px-4 mt-20'>
+      <main className='flex flex-1 w-full flex-col items-center justify-center px-4 sm:px-6 lg:px-8 mt-20'>
         <div className='w-full max-w-md'>
           <h1 className='text-3xl font-bold text-center mb-8 text-slate-900'>
             创建账户
