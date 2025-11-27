@@ -58,11 +58,6 @@ const PassportPhoto: NextPage = () => {
       colors: { primary: '#000' },
       fontFamilies: { base: 'system-ui, -apple-system, sans-serif' }
     },
-    locale: {
-      'orDragDrop': '或拖拽图片到此处',
-      'upload': '上传图片',
-      'browse': '浏览文件'
-    },
     onPreUpload: async (
       file: File
     ): Promise<UploadWidgetOnPreUploadResult | undefined> => {
