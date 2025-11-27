@@ -38,6 +38,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const router = useRouter();
 
   useEffect(() => {
+    // 检查Supabase是否配置，如果没有配置则跳过auth初始化
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseAnonKey || supabaseUrl === 'https://placeholder.supabase.co') {
+      // Supabase未配置，直接设置为非加载状态
+      console.warn('Supabase not configured, auth features disabled');
+      setLoading(false);
+      return;
+    }
+
     // 获取初始 session
     const getInitialSession = async () => {
       try {
@@ -58,17 +69,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     getInitialSession();
 
     // 监听 auth 状态变化
-    const {
-      data: { subscription },
-    } = supabaseClient.auth.onAuthStateChange(async (_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    try {
+      const {
+        data: { subscription },
+      } = supabaseClient.auth.onAuthStateChange(async (_event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      });
 
-    return () => {
-      subscription.unsubscribe();
-    };
+      return () => {
+        subscription.unsubscribe();
+      };
+    } catch (error) {
+      console.error('Error setting up auth state listener:', error);
+      setLoading(false);
+    }
   }, []);
 
   const signOut = async () => {

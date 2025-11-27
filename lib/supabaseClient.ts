@@ -25,26 +25,29 @@ export type Database = {
   };
 };
 
-// 环境变量检查
+// 环境变量检查（不抛出错误，允许应用在没有Supabase时也能运行）
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl) {
-  throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_URL');
-}
-
-if (!supabaseAnonKey) {
-  throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_ANON_KEY');
+// 只在开发环境警告，不抛出错误
+if (process.env.NODE_ENV === 'development') {
+  if (!supabaseUrl) {
+    console.warn('Warning: Missing env.NEXT_PUBLIC_SUPABASE_URL - Auth features will be disabled');
+  }
+  if (!supabaseAnonKey) {
+    console.warn('Warning: Missing env.NEXT_PUBLIC_SUPABASE_ANON_KEY - Auth features will be disabled');
+  }
 }
 
 /**
  * 客户端 Supabase 客户端（用于客户端代码）
  * 使用匿名 key，受 RLS（Row Level Security）策略限制
+ * 如果环境变量缺失，使用占位符值以避免应用崩溃
  */
 export const supabaseClient: SupabaseClient<Database> = createClient<Database>(
-  supabaseUrl as string,
-  supabaseAnonKey as string,
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder-anon-key',
   {
     auth: {
       autoRefreshToken: true,
@@ -58,10 +61,11 @@ export const supabaseClient: SupabaseClient<Database> = createClient<Database>(
  * 服务端 Supabase 客户端（用于 API 路由和服务器端代码）
  * 使用 Service Role Key，绕过 RLS 策略
  * 仅在服务端使用，不要暴露到客户端
+ * 如果环境变量缺失，使用占位符值以避免应用崩溃
  */
 export const supabaseServer: SupabaseClient<Database> = createClient<Database>(
-  supabaseUrl as string,
-  (supabaseServiceRoleKey || supabaseAnonKey) as string, // 如果没有 service role key，回退到 anon key
+  supabaseUrl || 'https://placeholder.supabase.co',
+  (supabaseServiceRoleKey || supabaseAnonKey || 'placeholder-service-key') as string,
   {
     auth: {
       autoRefreshToken: false,
@@ -77,15 +81,13 @@ export const supabaseServer: SupabaseClient<Database> = createClient<Database>(
  * @returns Supabase 客户端实例
  */
 export function createServerClient(accessToken?: string): SupabaseClient<Database> {
-  // 确保环境变量已设置（运行时检查）
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error('Missing required Supabase environment variables');
-  }
+  // 如果环境变量缺失，使用占位符值（允许应用在没有Supabase时也能运行）
+  const url = supabaseUrl || 'https://placeholder.supabase.co';
+  const key = supabaseAnonKey || 'placeholder-anon-key';
   
-  // 使用类型断言，因为我们已经检查过这些值不会是 undefined
   const client = createClient<Database>(
-    supabaseUrl as string,
-    supabaseAnonKey as string,
+    url,
+    key,
     {
       auth: {
         autoRefreshToken: false,
