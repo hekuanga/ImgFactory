@@ -41,11 +41,11 @@ const Home: NextPage = () => {
               <div className='flex-1'>
                 <h2 className='mb-3 sm:mb-4 font-medium text-base sm:text-lg text-slate-700 dark:text-slate-300 text-center sm:text-left transition-colors duration-300'>{t.restore.originalPhoto}</h2>
                 <div className='bg-white dark:bg-slate-700 rounded-2xl sm:rounded-3xl p-2 sm:p-3 shadow-inner border-2 border-[#E8DEBB] dark:border-slate-600 overflow-hidden transition-colors duration-300'>
-                  <div className='relative w-full aspect-square'>
+                  <div className='relative w-full aspect-[3/4]'>
                     <Image
                       alt='修复前示例'
                       src='/old.png'
-                      className='w-full h-full object-cover rounded-xl'
+                      className='w-full h-full object-contain rounded-xl'
                       fill
                       sizes='(max-width: 640px) 100vw, 50vw'
                     />
@@ -61,11 +61,11 @@ const Home: NextPage = () => {
               <div className='flex-1'>
                 <h2 className='mb-3 sm:mb-4 font-medium text-base sm:text-lg text-slate-700 dark:text-slate-300 text-center sm:text-left transition-colors duration-300'>{t.restore.restoredPhoto}</h2>
                 <div className='bg-white dark:bg-slate-700 rounded-2xl sm:rounded-3xl p-2 sm:p-3 shadow-inner border-2 border-[#E8DEBB] dark:border-slate-600 overflow-hidden transition-colors duration-300'>
-                  <div className='relative w-full aspect-square'>
+                  <div className='relative w-full aspect-[3/4]'>
                     <Image
                       alt='修复后示例'
                       src='/new.jpeg'
-                      className='w-full h-full object-cover rounded-xl'
+                      className='w-full h-full object-contain rounded-xl'
                       fill
                       sizes='(max-width: 640px) 100vw, 50vw'
                     />
