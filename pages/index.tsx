@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Footer from '../components/Footer';
 import Header from '../components/Header';
+import SquigglyLines from '../components/SquigglyLines';
 import { useTranslation } from '../hooks/useTranslation';
 
 const Home: NextPage = () => {
@@ -18,8 +19,9 @@ const Home: NextPage = () => {
       <main className='flex flex-1 w-full flex-col items-center justify-center px-4 sm:px-6 lg:px-8 py-6 sm:py-8'>
         {/* 主标题区域 */}
         <div className='text-center mb-6 sm:mb-8 lg:mb-10 w-full'>
-          <h1 className='mx-auto max-w-5xl font-display text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold tracking-normal text-slate-900 dark:text-slate-100 mb-2 transition-colors duration-300 leading-tight'>
+          <h1 className='mx-auto max-w-5xl font-display text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold tracking-normal text-slate-900 dark:text-slate-100 mb-2 transition-colors duration-300 leading-tight relative'>
             {t.home.title}
+            <SquigglyLines />
           </h1>
           <p className='mx-auto max-w-3xl text-sm sm:text-base lg:text-lg text-slate-600 dark:text-slate-400 transition-colors duration-300 px-4'>
             {t.home.subtitle}
