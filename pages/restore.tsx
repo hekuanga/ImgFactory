@@ -269,6 +269,35 @@ const Home: NextPage = () => {
           {t.home.subtitle}
         </p>
         
+        {/* 错误提示 - 放在显眼位置 */}
+        {error && (
+          <div
+            className='bg-red-50 dark:bg-red-900/20 border-2 border-red-400 dark:border-red-500 text-red-800 dark:text-red-200 px-6 py-4 rounded-xl mb-6 max-w-3xl w-full shadow-lg animate-pulse'
+            role='alert'
+          >
+            <div className='flex items-start gap-3 mb-2'>
+              <svg className='w-6 h-6 flex-shrink-0 mt-0.5' fill='currentColor' viewBox='0 0 20 20'>
+                <path fillRule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z' clipRule='evenodd' />
+              </svg>
+              <div className='flex-1'>
+                <div className='font-bold text-base mb-2'>错误</div>
+                <div className='text-sm whitespace-pre-line leading-relaxed'>
+                  {error}
+                </div>
+              </div>
+              <button
+                onClick={() => setError(null)}
+                className='flex-shrink-0 text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200 transition-colors'
+                aria-label='关闭错误提示'
+              >
+                <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+                </svg>
+              </button>
+            </div>
+          </div>
+        )}
+        
         {/* 模型选择区域 - 始终显示，不依赖于是否上传照片 */}
         <div className='w-full max-w-md mb-6'>
           <div className='bg-white dark:bg-slate-800 rounded-2xl p-4 sm:p-6 shadow-lg border-2 border-[#E8DEBB] dark:border-slate-700 transition-colors duration-300'>
@@ -423,22 +452,6 @@ const Home: NextPage = () => {
               <div className='bg-[#F7F4E9] dark:bg-slate-800 rounded-2xl px-6 py-4 border-2 border-[#E8DEBB] dark:border-slate-700 inline-block transition-colors duration-300'>
                 <LoadingDots color='#666' style='large' />
                 <p className='text-sm text-slate-600 dark:text-slate-400 mt-2 transition-colors duration-300'>{t.restore.loading}</p>
-              </div>
-            </div>
-          )}
-          {error && (
-            <div
-              className='bg-red-50 border-2 border-red-300 text-red-700 px-6 py-4 rounded-xl mt-8 max-w-[575px] shadow-lg'
-              role='alert'
-            >
-              <div className='flex items-center gap-2 mb-2'>
-                <svg className='w-5 h-5' fill='currentColor' viewBox='0 0 20 20'>
-                  <path fillRule='evenodd' d='M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z' clipRule='evenodd' />
-                </svg>
-                <span className='font-bold'>错误</span>
-              </div>
-              <div className='text-sm whitespace-pre-line'>
-                {error}
               </div>
             </div>
           )}
