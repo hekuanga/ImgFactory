@@ -44,7 +44,7 @@ const Home: NextPage = () => {
                   <div className='relative w-full aspect-square'>
                     <Image
                       alt='修复前示例'
-                      src='/michael.jpg'
+                      src='/old.png'
                       className='w-full h-full object-cover rounded-xl'
                       fill
                       sizes='(max-width: 640px) 100vw, 50vw'
@@ -64,7 +64,7 @@ const Home: NextPage = () => {
                   <div className='relative w-full aspect-square'>
                     <Image
                       alt='修复后示例'
-                      src='/michael-new.jpg'
+                      src='/new.jpeg'
                       className='w-full h-full object-cover rounded-xl'
                       fill
                       sizes='(max-width: 640px) 100vw, 50vw'
