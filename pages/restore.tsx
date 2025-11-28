@@ -17,9 +17,12 @@ import appendNewToName from '../utils/appendNewToName';
 import downloadPhoto from '../utils/downloadPhoto';
 import { useTranslation } from '../hooks/useTranslation';
 import { getMaxFileSize, formatFileSize } from '../constants/upload';
+import { useAuth } from '../contexts/AuthContext';
+import { supabaseClient } from '../lib/supabaseClient';
 
 const Home: NextPage = () => {
   const { t, language } = useTranslation();
+  const { session } = useAuth();
   const [originalPhoto, setOriginalPhoto] = useState<string | null>(null);
   const [restoredImage, setRestoredImage] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -159,12 +162,22 @@ const Home: NextPage = () => {
     setModelSwitchMessage(null);
 
     try {
+      // 获取访问令牌
+      const accessToken = session?.access_token || null;
+      
       // 调用API，传递所选模型
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      };
+      
+      // 如果用户已登录，添加Authorization header
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+      }
+      
       const res = await fetch('/api/generate', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({ 
           imageUrl: fileUrl,
           model: selectedModel // 传递所选模型
@@ -174,20 +187,23 @@ const Home: NextPage = () => {
       let response = await res.json();
       if (res.status !== 200) {
         // 处理错误响应
-        let errorMsg = '照片修复失败，请稍后再试。';
+        let errorMsg = t.restore.error;
+        
         if (typeof response === 'string') {
           errorMsg = response;
+        } else if (response?.error === 'UNAUTHORIZED') {
+          // 未登录错误，使用翻译
+          errorMsg = t.restore.loginRequired;
         } else if (response?.error === 'INSUFFICIENT_CREDITS' || response?.message?.includes('积分不足')) {
           // 积分不足错误，使用翻译
           errorMsg = t.restore.insufficientCredits;
         } else if (response?.error) {
-          errorMsg = typeof response.error === 'string' ? response.error : '照片修复失败，请稍后再试。';
+          // 其他错误，如果是字符串直接使用，否则使用默认错误消息
+          errorMsg = typeof response.error === 'string' ? response.error : t.restore.error;
         } else if (response?.message) {
           errorMsg = response.message;
         }
         
-        // 后端已经提供了详细的错误信息和建议，直接使用
-        // 不需要再次覆盖，保留后端返回的完整错误信息（包括建议）
         setError(errorMsg);
       } else {
         // 检查响应类型

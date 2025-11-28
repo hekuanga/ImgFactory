@@ -242,7 +242,6 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
       console.warn('用户未登录，无法生成证件照');
       return res.status(401).json({ 
         error: 'UNAUTHORIZED',
-        message: '请先登录后才能使用证件照生成功能。',
         imageUrl: ''
       } as ApiResponse);
     }
@@ -261,7 +260,6 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
       console.warn('用户积分不足，无法生成证件照');
       return res.status(400).json({ 
         error: 'INSUFFICIENT_CREDITS',
-        message: '您的积分不足，无法生成证件照。请先充值积分。',
         imageUrl: ''
       } as ApiResponse);
     }
@@ -274,7 +272,6 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
       if (!user) {
         return res.status(401).json({ 
           error: 'UNAUTHORIZED',
-          message: '请先登录后才能使用证件照生成功能。',
           imageUrl: ''
         } as ApiResponse);
       }
@@ -284,7 +281,6 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
       console.log('Credit check failed:', creditCheckError);
       return res.status(401).json({ 
         error: 'UNAUTHORIZED',
-        message: '请先登录后才能使用证件照生成功能。',
         imageUrl: ''
       } as ApiResponse);
     }

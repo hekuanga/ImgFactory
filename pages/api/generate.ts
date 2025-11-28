@@ -663,8 +663,7 @@ export default async function handler(
       // 用户未登录，返回错误并停止API调用
       console.warn('用户未登录，无法生成照片');
       return res.status(401).json({
-        error: 'UNAUTHORIZED',
-        message: '请先登录后才能使用照片修复功能。'
+        error: 'UNAUTHORIZED'
       });
     }
     
@@ -681,8 +680,7 @@ export default async function handler(
     if (currentCredits < 1) {
       console.warn('用户积分不足，无法生成照片');
       return res.status(400).json({
-        error: 'INSUFFICIENT_CREDITS',
-        message: '您的积分不足，无法生成照片。请先充值积分。'
+        error: 'INSUFFICIENT_CREDITS'
       });
     }
   } catch (creditCheckError: any) {
@@ -693,8 +691,7 @@ export default async function handler(
       const user = await verifyAuth(req, res);
       if (!user) {
         return res.status(401).json({
-          error: 'UNAUTHORIZED',
-          message: '请先登录后才能使用照片修复功能。'
+          error: 'UNAUTHORIZED'
         });
       }
       authenticatedUser = { id: user.id };
@@ -702,8 +699,7 @@ export default async function handler(
       // 其他错误（如未登录）返回错误
       console.log('Credit check failed:', creditCheckError);
       return res.status(401).json({
-        error: 'UNAUTHORIZED',
-        message: '请先登录后才能使用照片修复功能。'
+        error: 'UNAUTHORIZED'
       });
     }
   }

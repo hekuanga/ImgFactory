@@ -89,7 +89,6 @@ export const en = {
     generate: 'Generate ID Photo',
     loading: 'Generating...',
     fileSizeExceeded: 'Image size cannot exceed 20MB',
-    modelSwitchSuggestion: 'We suggest switching to another model and trying again',
     uploadNewPhoto: 'Upload New Photo',
     regenerate: 'Regenerate',
     download: 'Download ID Photo',

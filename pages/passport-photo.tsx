@@ -16,9 +16,11 @@ import appendNewToName from '../utils/appendNewToName';
 import downloadPhoto from '../utils/downloadPhoto';
 import { useTranslation } from '../hooks/useTranslation';
 import { getMaxFileSize, formatFileSize } from '../constants/upload';
+import { useAuth } from '../contexts/AuthContext';
 
 const PassportPhoto: NextPage = () => {
   const { t, language } = useTranslation();
+  const { session } = useAuth();
   // 状态管理
   const [originalPhoto, setOriginalPhoto] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null); // 添加文件对象状态
@@ -414,6 +416,9 @@ const PassportPhoto: NextPage = () => {
         // 压缩文件
         const processedFile = await compressFile(photoFile);
         
+        // 获取访问令牌
+        const accessToken = session?.access_token || null;
+        
         // 使用FormData发送文件
         const formData = new FormData();
         formData.append('image', processedFile);
@@ -423,8 +428,15 @@ const PassportPhoto: NextPage = () => {
         formData.append('skipClothing', 'false');
         formData.append('selectedModel', selectedModel);
         
+        const headers: HeadersInit = {};
+        // 如果用户已登录，添加Authorization header
+        if (accessToken) {
+          headers['Authorization'] = `Bearer ${accessToken}`;
+        }
+        
         res = await fetch('/api/passport-photo', {
           method: 'POST',
+          headers,
           body: formData,
           signal: controller.signal
         });
@@ -432,11 +444,21 @@ const PassportPhoto: NextPage = () => {
         // Bytescale URL 方式（与照片修复页面一致）
         console.log('使用 URL 方式，直接发送 Bytescale URL');
         
+        // 获取访问令牌
+        const accessToken = session?.access_token || null;
+        
+        const headers: HeadersInit = {
+          'Content-Type': 'application/json',
+        };
+        
+        // 如果用户已登录，添加Authorization header
+        if (accessToken) {
+          headers['Authorization'] = `Bearer ${accessToken}`;
+        }
+        
         res = await fetch('/api/passport-photo', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers,
           body: JSON.stringify({
             imageUrl: originalPhoto,
             size: size,
@@ -483,15 +505,26 @@ const PassportPhoto: NextPage = () => {
       }
       
       if (res.status !== 200) {
-        // 直接使用后端提供的详细错误消息，它已经包含了所有必要的提示
-        // 对不同类型的错误进行特殊处理
-        let errorMessage = response?.error || response || '服务器返回了错误';
+        // 处理错误响应，根据错误代码和当前语言显示相应的错误消息
+        let errorMessage = t.passportPhoto.errorTitle;
         
-        // 检查是否是积分不足错误
-        if (response?.error === 'INSUFFICIENT_CREDITS' || response?.message?.includes('积分不足')) {
+        if (typeof response === 'string') {
+          errorMessage = response;
+        } else if (response?.error === 'UNAUTHORIZED') {
+          // 未登录错误，使用翻译
+          errorMessage = t.passportPhoto.loginRequired;
+        } else if (response?.error === 'INSUFFICIENT_CREDITS' || response?.message?.includes('积分不足')) {
+          // 积分不足错误，使用翻译
           errorMessage = t.passportPhoto.insufficientCredits;
-        } else if (typeof errorMessage === 'string') {
-          // 根据错误消息内容提供更友好的格式
+        } else if (response?.error) {
+          // 其他错误，如果是字符串直接使用，否则使用默认错误消息
+          errorMessage = typeof response.error === 'string' ? response.error : t.passportPhoto.errorTitle;
+        } else if (response?.message) {
+          errorMessage = response.message;
+        }
+        
+        // 根据错误消息内容提供更友好的格式（仅对非UNAUTHORIZED和INSUFFICIENT_CREDITS错误）
+        if (errorMessage !== t.passportPhoto.loginRequired && errorMessage !== t.passportPhoto.insufficientCredits) {
           // 检查是否包含我们在后端添加的建议提示
           if (!errorMessage.includes('建议:')) {
             // 如果没有建议，添加统一的建议
