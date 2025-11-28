@@ -32,10 +32,9 @@
 4. **配置邮箱验证模板**
    - 进入 **Authentication** > **Email Templates**
    - 选择 **Confirm signup** 模板
-   - 确保重定向 URL 设置为：
-     ```
-     {{ .SiteURL }}/auth/callback
-     ```
+   - 使用推荐的模板代码（见 [邮箱模板配置指南](./EMAIL_TEMPLATE_SETUP.md)）
+   - 重要：使用 `{{ .ConfirmationURL }}` 变量（不是 `{{ .SiteURL }}`）
+   - `{{ .ConfirmationURL }}` 会自动包含重定向URL和验证token
 
 5. **保存配置**
    - 点击 **Save** 保存所有配置
