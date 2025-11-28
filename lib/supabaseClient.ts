@@ -30,13 +30,17 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-// 只在开发环境警告，不抛出错误
-if (process.env.NODE_ENV === 'development') {
-  if (!supabaseUrl) {
-    console.warn('Warning: Missing env.NEXT_PUBLIC_SUPABASE_URL - Auth features will be disabled');
-  }
-  if (!supabaseAnonKey) {
-    console.warn('Warning: Missing env.NEXT_PUBLIC_SUPABASE_ANON_KEY - Auth features will be disabled');
+// 在开发环境和生产环境都检查（但只在开发环境警告）
+if (!supabaseUrl || !supabaseAnonKey) {
+  if (process.env.NODE_ENV === 'development') {
+    console.warn('Warning: Missing Supabase environment variables:');
+    console.warn('  NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl || 'MISSING');
+    console.warn('  NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'SET' : 'MISSING');
+    console.warn('Auth features will be disabled');
+  } else {
+    // 生产环境：静默失败，但记录错误（不会暴露给用户）
+    console.error('Error: Missing Supabase environment variables in production');
+    console.error('Please check Vercel environment variables configuration');
   }
 }
 

@@ -46,12 +46,20 @@ const Register: NextPage = () => {
     setLoading(true);
 
     try {
-      // 检查 Supabase 配置（在客户端，环境变量可能不可用，所以检查客户端实例）
+      // 检查 Supabase 配置
+      // 注意：在客户端，process.env.NEXT_PUBLIC_* 变量在构建时注入
+      // 如果部署后仍然有问题，检查 Vercel 环境变量配置
       if (!supabaseClient || !supabaseClient.auth) {
         console.error('Supabase client not initialized');
         setError('服务配置错误，请稍后重试或联系管理员');
         setLoading(false);
         return;
+      }
+      
+      // 调试信息（仅在开发环境）
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+        console.log('Has Anon Key:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
       }
 
       // 获取认证回调URL
