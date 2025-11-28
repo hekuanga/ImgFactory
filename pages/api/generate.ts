@@ -17,6 +17,7 @@ interface ApiResponse {
   error?: string;
   message?: string;
   modelSwitchInfo?: string;
+  model?: string;
 }
 
 // Create a new ratelimiter, that allows 2 requests per day
@@ -829,7 +830,9 @@ export default async function handler(
   } catch (error) {
     console.error('照片修复API调用异常:', error);
     
-    // 返回通用错误信息（不暴露技术细节）
-    return res.status(500).json('照片修复失败：服务暂时不可用\n\n建议：\n• 请检查网络连接\n• 尝试切换模型\n• 如果问题持续，请稍后再试或联系客服');
+    // 返回错误代码，让前端根据语言显示
+    return res.status(500).json({
+      error: 'SERVICE_UNAVAILABLE'
+    });
   }
 }
