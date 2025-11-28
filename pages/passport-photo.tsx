@@ -505,38 +505,24 @@ const PassportPhoto: NextPage = () => {
       }
       
       if (res.status !== 200) {
-        // 处理错误响应，根据错误代码和当前语言显示相应的错误消息
-        let errorMessage = t.passportPhoto.errorTitle;
+        // 处理错误响应，根据错误代码和当前语言显示简化的错误消息
+        let errorMessage = '';
         
         if (typeof response === 'string') {
+          // 兼容旧的字符串格式错误
           errorMessage = response;
         } else if (response?.error === 'UNAUTHORIZED') {
-          // 未登录错误，使用翻译
           errorMessage = t.passportPhoto.loginRequired;
-        } else if (response?.error === 'INSUFFICIENT_CREDITS' || response?.message?.includes('积分不足')) {
-          // 积分不足错误，使用翻译
+        } else if (response?.error === 'INSUFFICIENT_CREDITS') {
           errorMessage = t.passportPhoto.insufficientCredits;
+        } else if (response?.error === 'SERVICE_UNAVAILABLE') {
+          // 服务不可用，显示简化的错误消息
+          errorMessage = `${t.passportPhoto.serviceUnavailable}。${t.passportPhoto.serviceUnavailableSuggestion}`;
         } else if (response?.error) {
-          // 其他错误，如果是字符串直接使用，否则使用默认错误消息
-          errorMessage = typeof response.error === 'string' ? response.error : t.passportPhoto.errorTitle;
-        } else if (response?.message) {
-          errorMessage = response.message;
-        }
-        
-        // 根据错误消息内容提供更友好的格式（仅对非UNAUTHORIZED和INSUFFICIENT_CREDITS错误）
-        if (errorMessage !== t.passportPhoto.loginRequired && errorMessage !== t.passportPhoto.insufficientCredits) {
-          // 检查是否包含我们在后端添加的建议提示
-          if (!errorMessage.includes('建议:')) {
-            // 如果没有建议，添加统一的建议
-            errorMessage += '\n建议: 请上传包含清晰人物的照片，确保光线充足，背景不要过于复杂。';
-          }
-          
-          // 对于特定错误类型的额外提示
-          if (errorMessage.includes('超时')) {
-            errorMessage += '\n\n提示: 处理大图片可能需要较长时间，请尝试使用较小的图片文件。';
-          } else if (errorMessage.includes('API错误')) {
-            errorMessage += '\n\n提示: 这可能是服务器暂时不可用，请稍后再试。';
-          }
+          // 其他错误代码，使用通用错误消息
+          errorMessage = `${t.passportPhoto.serviceUnavailable}。${t.passportPhoto.serviceUnavailableSuggestion}`;
+        } else {
+          errorMessage = `${t.passportPhoto.serviceUnavailable}。${t.passportPhoto.serviceUnavailableSuggestion}`;
         }
         
         setError(errorMessage);
@@ -581,22 +567,8 @@ const PassportPhoto: NextPage = () => {
     } catch (error) {
       console.error('生成证件照时发生错误:', error);
       
-      // 提供更具体的错误信息
-      let errorMessage = '服务器通信失败';
-      
-      if (error instanceof Error) {
-        if (error.name === 'AbortError') {
-          errorMessage = '请求超时，请检查网络连接或稍后再试';
-        } else if (error.message.includes('Network')) {
-          errorMessage = '网络连接失败，请检查您的网络设置';
-        } else if (error.message.includes('Failed to fetch')) {
-          errorMessage = '服务器暂时无法访问，请稍后再试';
-        } else {
-          errorMessage += '：' + error.message;
-        }
-      }
-      
-      setError(errorMessage);
+      // 使用简化的错误消息
+      setError(`${t.passportPhoto.serviceUnavailable}。${t.passportPhoto.serviceUnavailableSuggestion}`);
     } finally {
       setLoading(false);
     }
@@ -691,22 +663,8 @@ const PassportPhoto: NextPage = () => {
     } catch (error) {
       console.error('更换背景时发生错误:', error);
       
-      // 提供更具体的错误信息
-      let errorMessage = '服务器通信失败';
-      
-      if (error instanceof Error) {
-        if (error.name === 'AbortError') {
-          errorMessage = '请求超时，请检查网络连接或稍后再试';
-        } else if (error.message.includes('Network')) {
-          errorMessage = '网络连接失败，请检查您的网络设置';
-        } else if (error.message.includes('Failed to fetch')) {
-          errorMessage = '服务器暂时无法访问，请稍后再试';
-        } else {
-          errorMessage += '：' + error.message;
-        }
-      }
-      
-      setError(errorMessage);
+      // 使用简化的错误消息
+      setError(`${t.passportPhoto.serviceUnavailable}。${t.passportPhoto.serviceUnavailableSuggestion}`);
     } finally {
       setLoading(false);
     }

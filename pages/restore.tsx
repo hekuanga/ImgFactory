@@ -186,22 +186,24 @@ const Home: NextPage = () => {
 
       let response = await res.json();
       if (res.status !== 200) {
-        // 处理错误响应
-        let errorMsg = t.restore.error;
+        // 处理错误响应，根据错误代码和当前语言显示简化的错误消息
+        let errorMsg = '';
         
         if (typeof response === 'string') {
+          // 兼容旧的字符串格式错误
           errorMsg = response;
         } else if (response?.error === 'UNAUTHORIZED') {
-          // 未登录错误，使用翻译
           errorMsg = t.restore.loginRequired;
-        } else if (response?.error === 'INSUFFICIENT_CREDITS' || response?.message?.includes('积分不足')) {
-          // 积分不足错误，使用翻译
+        } else if (response?.error === 'INSUFFICIENT_CREDITS') {
           errorMsg = t.restore.insufficientCredits;
+        } else if (response?.error === 'SERVICE_UNAVAILABLE') {
+          // 服务不可用，显示简化的错误消息
+          errorMsg = `${t.restore.serviceUnavailable}。${t.restore.serviceUnavailableSuggestion}`;
         } else if (response?.error) {
-          // 其他错误，如果是字符串直接使用，否则使用默认错误消息
-          errorMsg = typeof response.error === 'string' ? response.error : t.restore.error;
-        } else if (response?.message) {
-          errorMsg = response.message;
+          // 其他错误代码，使用通用错误消息
+          errorMsg = `${t.restore.serviceUnavailable}。${t.restore.serviceUnavailableSuggestion}`;
+        } else {
+          errorMsg = `${t.restore.serviceUnavailable}。${t.restore.serviceUnavailableSuggestion}`;
         }
         
         setError(errorMsg);
@@ -225,7 +227,7 @@ const Home: NextPage = () => {
     } catch (error) {
       // 提供更详细的捕获异常信息
       console.error('生成照片时发生错误:', error);
-      setError('服务器通信失败，请检查网络连接或稍后再试。');
+      setError(`${t.restore.serviceUnavailable}。${t.restore.serviceUnavailableSuggestion}`);
     } finally {
       setLoading(false);
       loadRemainingGenerations(); // 重新加载剩余次数

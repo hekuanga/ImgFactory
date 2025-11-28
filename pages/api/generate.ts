@@ -744,24 +744,11 @@ export default async function handler(
         let fullErrorMessage = '照片修复失败：方舟SDK调用失败';
         let suggestions: string[] = [];
         
-        if (isSensitiveError) {
-          fullErrorMessage = '照片修复失败：检测到敏感内容（可能是误判）';
-          suggestions.push('• 这可能是AI误判，建议您：');
-          suggestions.push('  1. 尝试更换其他图片重新生成');
-          suggestions.push('  2. 尝试切换到Replicate模型');
-          suggestions.push('  3. 确保图片内容符合使用规范');
-        } else {
-          suggestions.push('• 建议您：');
-          suggestions.push('  1. 检查网络连接是否正常');
-          suggestions.push('  2. 尝试切换到Replicate模型');
-          suggestions.push('  3. 如果问题持续，请稍后再试');
-        }
-        
-        const fullError = suggestions.length > 0 
-          ? `${fullErrorMessage}\n\n建议：\n${suggestions.join('\n')}`
-          : fullErrorMessage;
-        
-        return res.status(500).json(fullError);
+        // 返回错误代码，让前端根据语言显示
+        return res.status(500).json(JSON.stringify({
+          error: 'SERVICE_UNAVAILABLE',
+          model: 'ark'
+        }));
       }
     } else {
       // 使用Replicate模型
@@ -780,24 +767,11 @@ export default async function handler(
         let fullErrorMessage = '照片修复失败：Replicate服务暂时不可用';
         let suggestions: string[] = [];
         
-        if (isAuthFailed) {
-          fullErrorMessage = '照片修复失败：Replicate服务暂时不可用';
-          suggestions.push('• 建议您：');
-          suggestions.push('  1. 请稍后再试');
-          suggestions.push('  2. 尝试切换到方舟SDK模型');
-          suggestions.push('  3. 如果问题持续，请联系客服');
-        } else {
-          suggestions.push('• 建议您：');
-          suggestions.push('  1. 检查网络连接是否正常');
-          suggestions.push('  2. 尝试切换到方舟SDK模型');
-          suggestions.push('  3. 如果问题持续，请稍后再试');
-        }
-        
-        const fullError = suggestions.length > 0 
-          ? `${fullErrorMessage}\n\n建议：\n${suggestions.join('\n')}`
-          : fullErrorMessage;
-        
-        return res.status(500).json(fullError);
+        // 返回错误代码，让前端根据语言显示
+        return res.status(500).json({
+          error: 'SERVICE_UNAVAILABLE',
+          model: 'replicate'
+        });
       }
     }
     

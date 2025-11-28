@@ -659,41 +659,10 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
             console.log(`等待${waitTime}ms后重试...`);
             await new Promise(resolve => setTimeout(resolve, waitTime));
           } else {
-            // 所有重试都失败，返回错误提示和建议
-            let fullErrorMessage = '证件照生成失败：方舟SDK服务暂时不可用';
-            let suggestions: string[] = [];
-            
-            if (error instanceof Error && (error.name === 'AbortError' || error.message.includes('aborted') || error.message.includes('timeout'))) {
-              fullErrorMessage = '证件照生成失败：请求超时';
-              suggestions.push('• 建议您：');
-              suggestions.push('  1. 检查网络连接是否正常');
-              suggestions.push('  2. 尝试使用较小的图片文件');
-              suggestions.push('  3. 尝试切换到Replicate模型');
-            } else if (error instanceof TypeError && error.message.includes('fetch failed')) {
-              fullErrorMessage = '证件照生成失败：网络连接错误';
-              suggestions.push('• 建议您：');
-              suggestions.push('  1. 检查网络连接是否正常');
-              suggestions.push('  2. 尝试切换到Replicate模型');
-              suggestions.push('  3. 如果问题持续，请稍后再试');
-            } else if (error instanceof Error && error.message.includes('ARK_API_KEY')) {
-              fullErrorMessage = '证件照生成失败：方舟SDK服务暂时不可用';
-              suggestions.push('• 建议您：');
-              suggestions.push('  1. 请稍后再试');
-              suggestions.push('  2. 尝试切换到Replicate模型');
-              suggestions.push('  3. 如果问题持续，请联系客服');
-            } else {
-              suggestions.push('• 建议您：');
-              suggestions.push('  1. 检查网络连接是否正常');
-              suggestions.push('  2. 尝试切换到Replicate模型');
-              suggestions.push('  3. 如果问题持续，请稍后再试');
-            }
-            
-            const fullError = suggestions.length > 0 
-              ? `${fullErrorMessage}\n\n建议：\n${suggestions.join('\n')}`
-              : fullErrorMessage;
-            
+            // 返回错误代码，让前端根据语言显示
             return res.status(500).json({
-              error: fullError,
+              error: 'SERVICE_UNAVAILABLE',
+              model: 'ark',
               imageUrl: ''
             } as ApiResponse);
           }
@@ -924,41 +893,10 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
           }
         }
         
-        // Replicate调用失败，返回错误提示和建议
-        let fullErrorMessage = '证件照生成失败：Replicate服务暂时不可用';
-        let suggestions: string[] = [];
-        
-        if (error instanceof Error) {
-          if (error.message.includes('Authentication') || error.message.includes('401')) {
-            fullErrorMessage = '证件照生成失败：Replicate服务暂时不可用';
-            suggestions.push('• 建议您：');
-            suggestions.push('  1. 请稍后再试');
-            suggestions.push('  2. 尝试切换到方舟SDK模型');
-            suggestions.push('  3. 如果问题持续，请联系客服');
-          } else if (error.message.includes('timeout') || error.message.includes('超时') || error.message.includes('Timeout')) {
-            fullErrorMessage = '证件照生成失败：请求超时';
-            suggestions.push('• 建议您：');
-            suggestions.push('  1. 检查网络连接是否正常');
-            suggestions.push('  2. 尝试使用较小的图片文件');
-            suggestions.push('  3. 尝试切换到方舟SDK模型');
-          } else if (error.message.includes('429')) {
-            fullErrorMessage = '证件照生成失败：请求频率限制';
-            suggestions.push('• 请稍后再试');
-            suggestions.push('• 或者尝试切换到方舟SDK模型');
-          } else {
-            suggestions.push('• 建议您：');
-            suggestions.push('  1. 检查网络连接是否正常');
-            suggestions.push('  2. 尝试切换到方舟SDK模型');
-            suggestions.push('  3. 如果问题持续，请稍后再试');
-          }
-        }
-        
-        const fullError = suggestions.length > 0 
-          ? `${fullErrorMessage}\n\n建议：\n${suggestions.join('\n')}`
-          : fullErrorMessage;
-        
+        // 返回错误代码，让前端根据语言显示
         return res.status(500).json({
-          error: fullError,
+          error: 'SERVICE_UNAVAILABLE',
+          model: 'replicate',
           imageUrl: ''
         } as ApiResponse);
       }
