@@ -380,7 +380,8 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
           
           // 检查 API 密钥
           if (!process.env.ARK_API_KEY || process.env.ARK_API_KEY === 'YOUR_ARK_API_KEY') {
-            throw new Error('ARK_API_KEY 未配置或使用了默认值');
+            console.error('ARK_API_KEY 未配置或使用了默认值');
+            throw new Error('方舟SDK服务暂时不可用');
           }
           
           // 检查 DataURL 大小（base64 编码会增加约 33% 的大小）
@@ -995,13 +996,9 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
   } catch (error) {
     console.error('证件照生成错误:', error);
     
-    // 最外层错误处理：返回错误信息
-    const finalErrorMessage = error instanceof Error 
-      ? error.message 
-      : '处理请求时发生错误';
-      
+    // 最外层错误处理：返回通用错误信息（不暴露技术细节）
     return res.status(500).json({
-      error: `证件照生成失败：${finalErrorMessage}\n\n建议：请检查网络连接或尝试切换模型`,
+      error: '证件照生成失败：服务暂时不可用\n\n建议：\n• 请检查网络连接\n• 尝试切换模型\n• 如果问题持续，请稍后再试或联系客服',
       imageUrl: ''
     } as ApiResponse);
   }
