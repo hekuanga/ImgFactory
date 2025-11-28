@@ -5,7 +5,6 @@ import { useState, FormEvent, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { supabaseClient } from '../lib/supabaseClient';
 import { useIsAuthenticated } from '../hooks/useAuth';
-import { getAuthCallbackUrl } from '../lib/getSiteUrl';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -62,53 +61,53 @@ const Register: NextPage = () => {
         console.log('Has Anon Key:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
       }
 
-      // 获取认证回调URL
-      const redirectTo = getAuthCallbackUrl();
-      
-      // 使用 Supabase 客户端直接注册
-      // 添加超时处理
-      const signUpPromise = supabaseClient.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: redirectTo,
-          data: name ? { name } : {},
+      // 调用注册 API 路由（这样会执行积分赠送逻辑）
+      const registerResponse = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          email,
+          password,
+          metadata: name ? { name } : {},
+        }),
       });
-      
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('请求超时，请检查网络连接')), 30000)
-      );
-      
-      const { data, error: signUpError } = await Promise.race([
-        signUpPromise,
-        timeoutPromise
-      ]) as any;
 
-      if (signUpError) {
-        let errorMessage = signUpError.message || '注册失败，请重试';
+      const registerData = await registerResponse.json();
+
+      if (!registerResponse.ok || !registerData.success) {
+        let errorMessage = registerData.error || '注册失败，请重试';
         
         // 处理网络错误
-        if (signUpError.message?.includes('fetch') || signUpError.message?.includes('network') || signUpError.message?.includes('NetworkError')) {
+        if (errorMessage.includes('fetch') || errorMessage.includes('network') || errorMessage.includes('NetworkError')) {
           errorMessage = '网络连接失败，请检查网络连接后重试。如果问题持续，可能是服务器配置问题，请联系管理员。';
-        } else if (signUpError.status === 0 || signUpError.status === undefined) {
-          // CORS 或网络错误
-          errorMessage = '无法连接到服务器，请检查网络连接或稍后重试。';
         }
         
-        console.error('Sign up error:', signUpError);
+        console.error('Register error:', registerData);
         setError(errorMessage);
         setLoading(false);
         return;
       }
 
       // 注册成功
-      if (data.session) {
-        // Supabase 会自动保存 session
-        // session 会通过 AuthContext 自动更新
-        // 直接登录，重定向到首页
+      if (registerData.session) {
+        // 使用返回的 session 设置 Supabase 客户端
+        const { data: sessionData, error: sessionError } = await supabaseClient.auth.setSession({
+          access_token: registerData.session.access_token,
+          refresh_token: registerData.session.refresh_token,
+        });
+
+        if (sessionError) {
+          console.error('Failed to set session:', sessionError);
+          setError('登录失败，请重试');
+          setLoading(false);
+          return;
+        }
+
+        // 登录成功，重定向到首页
         router.push('/');
-      } else if (data.user) {
+      } else if (registerData.user) {
         // 用户已创建，但需要邮箱验证
         // 显示明显的验证提示
         setError('');
