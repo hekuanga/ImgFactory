@@ -768,10 +768,10 @@ export default async function handler(
         let suggestions: string[] = [];
         
         // 返回错误代码，让前端根据语言显示
-        return res.status(500).json({
+        return res.status(500).json(JSON.stringify({
           error: 'SERVICE_UNAVAILABLE',
           model: 'replicate'
-        });
+        }));
       }
     }
     
