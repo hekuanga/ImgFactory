@@ -4,7 +4,7 @@ import { stripe, getOrCreateStripeCustomer } from '../../../lib/stripe';
 
 type CreditsCheckoutRequest = {
   creditsAmount: number; // 积分数量
-  price: number; // 实际价格（元）
+  price: number; // 实际价格（澳币）
   packageId?: string; // 套餐ID（可选）
 };
 
@@ -77,7 +77,7 @@ export default async function handler(
       line_items: [
         {
           price_data: {
-            currency: 'cny', // 人民币
+            currency: 'aud', // 澳币
             product_data: {
               name: `${creditsAmount} 积分`,
               description: `购买 ${creditsAmount} 积分用于照片生成`,

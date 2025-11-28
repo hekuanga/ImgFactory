@@ -89,10 +89,10 @@ const Credits: NextPage = () => {
   };
 
   const creditPackages = [
-    { amount: 10, price: 9.9, bonus: 0, packageId: 'package_10' },
-    { amount: 50, price: 39.9, bonus: 5, packageId: 'package_50' },
-    { amount: 100, price: 69.9, bonus: 15, packageId: 'package_100' },
-    { amount: 200, price: 129.9, bonus: 40, packageId: 'package_200' },
+    { amount: 20, price: 9.9, bonus: 0, packageId: 'package_20' },
+    { amount: 100, price: 39.9, bonus: 10, packageId: 'package_100' },
+    { amount: 200, price: 69.9, bonus: 30, packageId: 'package_200' },
+    { amount: 400, price: 129.9, bonus: 80, packageId: 'package_400' },
   ];
 
   if (authLoading || loading) {
@@ -173,7 +173,7 @@ const Credits: NextPage = () => {
                     </div>
                   )}
                   <div className='text-lg font-semibold text-slate-700 dark:text-slate-300 mt-2'>
-                    ¥{pkg.price}
+                    A${pkg.price}
                   </div>
                 </div>
                 <button
