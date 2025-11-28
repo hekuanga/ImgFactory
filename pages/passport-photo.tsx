@@ -508,20 +508,28 @@ const PassportPhoto: NextPage = () => {
         // 处理错误响应，根据错误代码和当前语言显示简化的错误消息
         let errorMessage = '';
         
+        // 如果响应是字符串，尝试解析为JSON
+        let parsedResponse = response;
         if (typeof response === 'string') {
-          // 兼容旧的字符串格式错误
-          errorMessage = response;
-        } else if (response?.error === 'UNAUTHORIZED') {
+          try {
+            parsedResponse = JSON.parse(response);
+          } catch {
+            // 如果解析失败，使用通用错误消息
+            errorMessage = `${t.passportPhoto.serviceUnavailable}。${t.passportPhoto.serviceUnavailableSuggestion}`;
+            setError(errorMessage);
+            return;
+          }
+        }
+        
+        if (parsedResponse?.error === 'UNAUTHORIZED') {
           errorMessage = t.passportPhoto.loginRequired;
-        } else if (response?.error === 'INSUFFICIENT_CREDITS') {
+        } else if (parsedResponse?.error === 'INSUFFICIENT_CREDITS') {
           errorMessage = t.passportPhoto.insufficientCredits;
-        } else if (response?.error === 'SERVICE_UNAVAILABLE') {
+        } else if (parsedResponse?.error === 'SERVICE_UNAVAILABLE') {
           // 服务不可用，显示简化的错误消息
           errorMessage = `${t.passportPhoto.serviceUnavailable}。${t.passportPhoto.serviceUnavailableSuggestion}`;
-        } else if (response?.error) {
-          // 其他错误代码，使用通用错误消息
-          errorMessage = `${t.passportPhoto.serviceUnavailable}。${t.passportPhoto.serviceUnavailableSuggestion}`;
         } else {
+          // 其他错误，使用通用错误消息
           errorMessage = `${t.passportPhoto.serviceUnavailable}。${t.passportPhoto.serviceUnavailableSuggestion}`;
         }
         

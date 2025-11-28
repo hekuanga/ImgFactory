@@ -745,10 +745,10 @@ export default async function handler(
         let suggestions: string[] = [];
         
         // 返回错误代码，让前端根据语言显示
-        return res.status(500).json(JSON.stringify({
+        return res.status(500).json({
           error: 'SERVICE_UNAVAILABLE',
           model: 'ark'
-        }));
+        });
       }
     } else {
       // 使用Replicate模型
@@ -768,10 +768,10 @@ export default async function handler(
         let suggestions: string[] = [];
         
         // 返回错误代码，让前端根据语言显示
-        return res.status(500).json(JSON.stringify({
+        return res.status(500).json({
           error: 'SERVICE_UNAVAILABLE',
           model: 'replicate'
-        }));
+        });
       }
     }
     
