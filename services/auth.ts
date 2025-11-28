@@ -1,4 +1,5 @@
 import { supabaseClient, supabaseServer } from '../lib/supabaseClient';
+import { getAuthCallbackUrl } from '../lib/getSiteUrl';
 import type { User, Session, AuthError } from '@supabase/supabase-js';
 
 // 注册请求参数类型
@@ -77,11 +78,15 @@ export async function signUp(params: SignUpParams): Promise<SignUpResponse> {
       };
     }
 
+    // 获取认证回调URL
+    const redirectTo = getAuthCallbackUrl();
+    
     // 调用 Supabase 注册 API
     const { data, error } = await supabaseClient.auth.signUp({
       email,
       password,
       options: {
+        emailRedirectTo: redirectTo,
         data: metadata || {}
       }
     });
@@ -264,8 +269,11 @@ export async function resetPassword(email: string): Promise<{ error: AuthError |
       };
     }
 
+    // 获取站点URL并构建重置密码的重定向URL
+    const siteUrl = getAuthCallbackUrl().replace('/auth/callback', '');
+    
     const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/reset-password`
+      redirectTo: `${siteUrl}/auth/reset-password`
     });
 
     return { error };

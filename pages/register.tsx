@@ -5,6 +5,7 @@ import { useState, FormEvent, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { supabaseClient } from '../lib/supabaseClient';
 import { useIsAuthenticated } from '../hooks/useAuth';
+import { getAuthCallbackUrl } from '../lib/getSiteUrl';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
@@ -45,11 +46,15 @@ const Register: NextPage = () => {
     setLoading(true);
 
     try {
+      // 获取认证回调URL
+      const redirectTo = getAuthCallbackUrl();
+      
       // 使用 Supabase 客户端直接注册
       const { data, error: signUpError } = await supabaseClient.auth.signUp({
         email,
         password,
         options: {
+          emailRedirectTo: redirectTo,
           data: name ? { name } : {},
         },
       });
