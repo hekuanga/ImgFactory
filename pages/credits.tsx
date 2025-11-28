@@ -161,9 +161,9 @@ const Credits: NextPage = () => {
             {creditPackages.map((pkg) => (
               <div
                 key={pkg.amount}
-                className='bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border-2 border-[#E8DEBB] dark:border-slate-700 hover:border-black dark:hover:border-white transition-colors'
+                className='bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg border-2 border-[#E8DEBB] dark:border-slate-700 hover:border-black dark:hover:border-white transition-colors flex flex-col'
               >
-                <div className='text-center mb-4'>
+                <div className='text-center mb-4 flex-grow'>
                   <div className='text-3xl font-bold text-slate-900 dark:text-slate-100 mb-1'>
                     {pkg.amount}
                   </div>
@@ -179,7 +179,7 @@ const Credits: NextPage = () => {
                 <button
                   onClick={() => handlePurchase(pkg.amount + pkg.bonus, pkg.price, pkg.packageId)}
                   disabled={processing}
-                  className='w-full bg-black dark:bg-white text-white dark:text-black rounded-lg hover:bg-black/80 dark:hover:bg-white/80 transition px-4 py-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed'
+                  className='w-full bg-black dark:bg-white text-white dark:text-black rounded-lg hover:bg-black/80 dark:hover:bg-white/80 transition px-4 py-2 font-medium disabled:opacity-50 disabled:cursor-not-allowed mt-auto'
                 >
                   {processing ? t.user.processing : (language === 'zh' ? '立即充值' : 'Purchase')}
                 </button>
