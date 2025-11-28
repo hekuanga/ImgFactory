@@ -231,10 +231,16 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
     });
   }
   
+  // 保存用户信息，用于后续积分扣除
+  let authenticatedUser: { id: string } | null = null;
+  
   // 检查用户积分（在开始处理之前）
   try {
     const user = await verifyAuth(req, res);
     if (user) {
+      // 保存用户信息，用于后续积分扣除
+      authenticatedUser = { id: user.id };
+      
       const userRecord = await (prisma.user.findUnique as any)({
         where: { id: user.id },
         select: { credits: true }
@@ -510,11 +516,13 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
             
             // 扣除积分（只有在成功生成图片后才扣除）
             try {
-              const user = await verifyAuth(req, res);
-              if (user && generatedImageUrl) {
+              // 使用之前保存的用户信息，避免重复调用 verifyAuth
+              if (authenticatedUser && generatedImageUrl) {
+                // 提取用户ID到局部变量，确保类型安全
+                const userId = authenticatedUser.id;
                 await prisma.$transaction(async (tx: any) => {
                   await tx.user.update({
-                    where: { id: user.id },
+                    where: { id: userId },
                     data: {
                       credits: {
                         decrement: 1
@@ -524,14 +532,16 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
 
                   await tx.creditHistory.create({
                     data: {
-                      userId: user.id,
+                      userId: userId,
                       amount: -1,
                       type: 'deduct',
                       description: '证件照生成'
                     }
                   });
                 });
-                console.log('积分扣除成功（证件照生成成功）');
+                console.log('积分扣除成功（证件照生成成功），用户ID:', userId);
+              } else if (!authenticatedUser) {
+                console.log('用户未登录，跳过积分扣除');
               }
             } catch (creditError: any) {
               // 如果是列不存在错误（P2022），静默处理
@@ -806,11 +816,13 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
         
         // 扣除积分（只有在成功生成图片后才扣除）
         try {
-          const user = await verifyAuth(req, res);
-          if (user && finalImageUrl) {
+          // 使用之前保存的用户信息，避免重复调用 verifyAuth
+          if (authenticatedUser && finalImageUrl) {
+            // 提取用户ID到局部变量，确保类型安全
+            const userId = authenticatedUser.id;
             await prisma.$transaction(async (tx: any) => {
               await tx.user.update({
-                where: { id: user.id },
+                where: { id: userId },
                 data: {
                   credits: {
                     decrement: 1
@@ -820,14 +832,16 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
 
               await tx.creditHistory.create({
                 data: {
-                  userId: user.id,
+                  userId: userId,
                   amount: -1,
                   type: 'deduct',
                   description: '证件照生成'
                 }
               });
             });
-            console.log('积分扣除成功（证件照生成成功）');
+            console.log('积分扣除成功（证件照生成成功），用户ID:', userId);
+          } else if (!authenticatedUser) {
+            console.log('用户未登录，跳过积分扣除');
           }
         } catch (creditError: any) {
           // 如果是列不存在错误（P2022），静默处理

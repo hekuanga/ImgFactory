@@ -653,10 +653,16 @@ export default async function handler(
   const selectedModel = requestedModel || 'replicate'; // 默认使用Replicate
   console.log('请求的模型:', selectedModel);
   
+  // 保存用户信息，用于后续积分扣除
+  let authenticatedUser: { id: string } | null = null;
+  
   // 检查用户积分（在开始处理之前）
   try {
     const user = await verifyAuth(req, res);
     if (user) {
+      // 保存用户信息，用于后续积分扣除
+      authenticatedUser = { id: user.id };
+      
       const userRecord = await (prisma.user.findUnique as any)({
         where: { id: user.id },
         select: { credits: true }
@@ -867,12 +873,14 @@ export default async function handler(
     
     // 扣除积分（只有在图片生成成功后才扣除）
     try {
-      const user = await verifyAuth(req, res);
-      if (user && finalResult && finalResult.imageUrl) {
+      // 使用之前保存的用户信息，避免重复调用 verifyAuth
+      if (authenticatedUser && finalResult && finalResult.imageUrl) {
         // 只有在成功生成图片后才扣除积分
+        // 提取用户ID到局部变量，确保类型安全
+        const userId = authenticatedUser.id;
         await prisma.$transaction(async (tx: any) => {
           await tx.user.update({
-            where: { id: user.id },
+            where: { id: userId },
             data: {
               credits: {
                 decrement: 1
@@ -882,14 +890,16 @@ export default async function handler(
 
           await tx.creditHistory.create({
             data: {
-              userId: user.id,
+              userId: userId,
               amount: -1,
               type: 'deduct',
               description: '照片修复'
             }
           });
         });
-        console.log('积分扣除成功（照片生成成功）');
+        console.log('积分扣除成功（照片生成成功），用户ID:', userId);
+      } else if (!authenticatedUser) {
+        console.log('用户未登录，跳过积分扣除');
       }
     } catch (creditError: any) {
       // 积分扣除失败不影响照片生成结果，只记录错误
