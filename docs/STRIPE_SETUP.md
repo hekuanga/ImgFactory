@@ -12,19 +12,36 @@
 
 ### 2. Stripe Webhook Secret
 
-1. 在 Stripe Dashboard 中进入 **Developers** > **Webhooks**
-2. 点击 **Add endpoint** 或选择现有端点
-3. 设置端点 URL：
-   - 开发环境：`http://localhost:3000/api/billing/webhook`
-   - 生产环境：`https://yourdomain.com/api/billing/webhook`
-4. 选择要监听的事件：
-   - `checkout.session.completed`
-   - `customer.subscription.created`
-   - `customer.subscription.updated`
-   - `customer.subscription.deleted`
-   - `invoice.payment_succeeded`
-   - `invoice.payment_failed`
-5. 创建后，点击端点查看 **Signing secret** → `STRIPE_WEBHOOK_SECRET` (以 `whsec_` 开头)
+**重要**：测试环境和正式环境需要不同的 Webhook Endpoint 和 Secret！
+
+#### 测试环境 (Test Mode)
+
+1. 确保 Stripe Dashboard 右上角显示 **"Test mode"**
+2. 在 Stripe Dashboard 中进入 **Developers** > **Webhooks**
+3. 点击 **Add endpoint**
+4. 设置端点 URL：`http://localhost:3000/api/billing/webhook`（本地测试）
+5. 选择要监听的事件（见下方列表）
+6. 创建后，复制 **Signing secret** → `STRIPE_WEBHOOK_SECRET` (以 `whsec_test_` 开头)
+
+#### 正式环境 (Live Mode)
+
+1. **切换到 Live Mode**：点击 Stripe Dashboard 右上角的开关
+2. 在 Stripe Dashboard 中进入 **Developers** > **Webhooks**
+3. 点击 **Add endpoint**
+4. 设置端点 URL：`https://imgfactorys.vercel.app/api/billing/webhook`
+5. 选择要监听的事件（见下方列表）
+6. 创建后，复制 **Signing secret** → `STRIPE_WEBHOOK_SECRET` (以 `whsec_` 开头，**不是** `whsec_test_`)
+
+**详细步骤请参考**：[正式账户 Webhook 配置指南](./STRIPE_LIVE_WEBHOOK_SETUP.md)
+
+#### 需要监听的事件
+
+- ✅ `checkout.session.completed` - 支付完成（积分购买）
+- ✅ `customer.subscription.created` - 订阅创建
+- ✅ `customer.subscription.updated` - 订阅更新
+- ✅ `customer.subscription.deleted` - 订阅取消
+- ✅ `invoice.payment_succeeded` - 发票支付成功
+- ✅ `invoice.payment_failed` - 发票支付失败
 
 ### 3. Stripe 价格 ID (Price IDs)
 
