@@ -46,11 +46,20 @@ const Register: NextPage = () => {
     setLoading(true);
 
     try {
+      // 检查 Supabase 配置（在客户端，环境变量可能不可用，所以检查客户端实例）
+      if (!supabaseClient || !supabaseClient.auth) {
+        console.error('Supabase client not initialized');
+        setError('服务配置错误，请稍后重试或联系管理员');
+        setLoading(false);
+        return;
+      }
+
       // 获取认证回调URL
       const redirectTo = getAuthCallbackUrl();
       
       // 使用 Supabase 客户端直接注册
-      const { data, error: signUpError } = await supabaseClient.auth.signUp({
+      // 添加超时处理
+      const signUpPromise = supabaseClient.auth.signUp({
         email,
         password,
         options: {
@@ -58,9 +67,29 @@ const Register: NextPage = () => {
           data: name ? { name } : {},
         },
       });
+      
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('请求超时，请检查网络连接')), 30000)
+      );
+      
+      const { data, error: signUpError } = await Promise.race([
+        signUpPromise,
+        timeoutPromise
+      ]) as any;
 
       if (signUpError) {
-        setError(signUpError.message || '注册失败，请重试');
+        let errorMessage = signUpError.message || '注册失败，请重试';
+        
+        // 处理网络错误
+        if (signUpError.message?.includes('fetch') || signUpError.message?.includes('network') || signUpError.message?.includes('NetworkError')) {
+          errorMessage = '网络连接失败，请检查网络连接后重试。如果问题持续，可能是服务器配置问题，请联系管理员。';
+        } else if (signUpError.status === 0 || signUpError.status === undefined) {
+          // CORS 或网络错误
+          errorMessage = '无法连接到服务器，请检查网络连接或稍后重试。';
+        }
+        
+        console.error('Sign up error:', signUpError);
+        setError(errorMessage);
         setLoading(false);
         return;
       }
@@ -86,7 +115,14 @@ const Register: NextPage = () => {
       }
     } catch (err) {
       console.error('Register error:', err);
-      setError('网络错误，请稍后重试');
+      const errorMessage = err instanceof Error ? err.message : '未知错误';
+      
+      // 检查是否是网络错误
+      if (errorMessage.includes('fetch') || errorMessage.includes('network') || errorMessage.includes('NetworkError')) {
+        setError('网络连接失败，请检查网络连接后重试。如果问题持续，请联系管理员。');
+      } else {
+        setError('注册失败，请稍后重试');
+      }
       setLoading(false);
     }
   };

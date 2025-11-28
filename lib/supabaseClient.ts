@@ -52,7 +52,15 @@ export const supabaseClient: SupabaseClient<Database> = createClient<Database>(
     auth: {
       autoRefreshToken: true,
       persistSession: true,
-      detectSessionInUrl: true
+      detectSessionInUrl: true,
+      // 添加重试配置
+      flowType: 'pkce'
+    },
+    // 添加全局配置以提高网络请求的可靠性
+    global: {
+      headers: {
+        'X-Client-Info': 'restorephotos-web'
+      }
     }
   }
 );
