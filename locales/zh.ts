@@ -59,13 +59,14 @@ export const zh = {
     originalPhotoAlt: '原始照片',
     restoredPhotoAlt: '修复后照片',
     insufficientCredits: '您的积分不足，无法生成照片。请先充值积分。',
+    loginRequired: '请先登录后才能使用照片修复功能。',
     // Model names
     modelArkSDK: '方舟SDK',
     modelReplicate: 'Replicate',
     // Model descriptions
     arkSDKDesc: '方舟SDK: 豆包官方AI模型，色彩还原度高，细节更自然',
     replicateDesc: 'Replicate: 开源模型，响应速度较快',
-    modelSwitchNote: '当首选模型调用失败时，系统会自动尝试备选模型',
+    modelSwitchSuggestion: '建议您切换到另一个模型重试',
   },
   // 证件照页面
   passportPhoto: {
@@ -77,6 +78,7 @@ export const zh = {
     uploadPhoto: '上传照片',
     currentUsedModel: '当前使用模型',
     insufficientCredits: '您的积分不足，无法生成证件照。请先充值积分。',
+    loginRequired: '请先登录后才能使用证件照生成功能。',
     originalImage: '原图',
     originalImageLoadFailed: '原图加载失败',
     uploadedPhoto: '上传的照片',
@@ -113,7 +115,7 @@ export const zh = {
     // Model descriptions
     arkSDKDesc: '方舟SDK: 豆包官方AI模型，色彩还原度高，人像细节更自然',
     replicateDesc: 'Replicate: 第三方开源模型，响应速度较快，适合简单证件照生成',
-    modelSwitchNote: '当首选模型调用失败时，系统会自动尝试备选模型',
+    modelSwitchSuggestion: '建议您切换到另一个模型重试',
   },
   // 通用
   common: {

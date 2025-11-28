@@ -234,36 +234,59 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
   // 保存用户信息，用于后续积分扣除
   let authenticatedUser: { id: string } | null = null;
   
-  // 检查用户积分（在开始处理之前）
+  // 检查用户登录状态和积分（在开始处理之前）
   try {
     const user = await verifyAuth(req, res);
-    if (user) {
-      // 保存用户信息，用于后续积分扣除
-      authenticatedUser = { id: user.id };
-      
-      const userRecord = await (prisma.user.findUnique as any)({
-        where: { id: user.id },
-        select: { credits: true }
-      });
+    if (!user) {
+      // 用户未登录，返回错误并停止API调用
+      console.warn('用户未登录，无法生成证件照');
+      return res.status(401).json({ 
+        error: 'UNAUTHORIZED',
+        message: '请先登录后才能使用证件照生成功能。',
+        imageUrl: ''
+      } as ApiResponse);
+    }
+    
+    // 保存用户信息，用于后续积分扣除
+    authenticatedUser = { id: user.id };
+    
+    const userRecord = await (prisma.user.findUnique as any)({
+      where: { id: user.id },
+      select: { credits: true }
+    });
 
-      const currentCredits = userRecord?.credits || 0;
-      
-      if (currentCredits < 1) {
-        console.warn('用户积分不足，无法生成证件照');
-        return res.status(400).json({ 
-          error: 'INSUFFICIENT_CREDITS',
-          message: '您的积分不足，无法生成证件照。请先充值积分。',
-          imageUrl: ''
-        } as ApiResponse);
-      }
+    const currentCredits = userRecord?.credits || 0;
+    
+    if (currentCredits < 1) {
+      console.warn('用户积分不足，无法生成证件照');
+      return res.status(400).json({ 
+        error: 'INSUFFICIENT_CREDITS',
+        message: '您的积分不足，无法生成证件照。请先充值积分。',
+        imageUrl: ''
+      } as ApiResponse);
     }
   } catch (creditCheckError: any) {
     // 如果是列不存在错误（P2022），允许继续（兼容旧数据库）
     if (creditCheckError?.code === 'P2022' || creditCheckError?.message?.includes('does not exist')) {
       console.warn('Credits column does not exist, skipping credit check');
+      // 即使列不存在，仍然需要检查登录状态
+      const user = await verifyAuth(req, res);
+      if (!user) {
+        return res.status(401).json({ 
+          error: 'UNAUTHORIZED',
+          message: '请先登录后才能使用证件照生成功能。',
+          imageUrl: ''
+        } as ApiResponse);
+      }
+      authenticatedUser = { id: user.id };
     } else {
-      // 其他错误（如未登录）允许继续，匿名用户也可以使用
-      console.log('Credit check failed (user may not be logged in), allowing request to continue');
+      // 其他错误（如未登录）返回错误
+      console.log('Credit check failed:', creditCheckError);
+      return res.status(401).json({ 
+        error: 'UNAUTHORIZED',
+        message: '请先登录后才能使用证件照生成功能。',
+        imageUrl: ''
+      } as ApiResponse);
     }
   }
   
@@ -638,18 +661,49 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
             console.log(`等待${waitTime}ms后重试...`);
             await new Promise(resolve => setTimeout(resolve, waitTime));
           } else {
-            // 方舟SDK失败时，如果是首选模型则记录切换信息，然后尝试Replicate
-            if (selectedModel === 'ark') {
-              modelSwitchInfo = modelSwitchInfo || '方舟SDK调用失败，正在切换Replicate继续生成...';
+            // 所有重试都失败，返回错误提示和建议
+            const errorMsg = error instanceof Error ? error.message : '未知错误';
+            let fullErrorMessage = '证件照生成失败：方舟SDK调用失败';
+            let suggestions: string[] = [];
+            
+            if (error instanceof Error && (error.name === 'AbortError' || error.message.includes('aborted') || error.message.includes('timeout'))) {
+              fullErrorMessage = '证件照生成失败：方舟SDK请求超时';
+              suggestions.push('• 建议您：');
+              suggestions.push('  1. 检查网络连接是否正常');
+              suggestions.push('  2. 尝试使用较小的图片文件');
+              suggestions.push('  3. 尝试切换到Replicate模型');
+            } else if (error instanceof TypeError && error.message.includes('fetch failed')) {
+              fullErrorMessage = '证件照生成失败：网络连接错误';
+              suggestions.push('• 建议您：');
+              suggestions.push('  1. 检查网络连接是否正常');
+              suggestions.push('  2. 尝试切换到Replicate模型');
+              suggestions.push('  3. 如果问题持续，请稍后再试');
+            } else if (error instanceof Error && error.message.includes('ARK_API_KEY')) {
+              fullErrorMessage = '证件照生成失败：方舟SDK API密钥配置错误';
+              suggestions.push('• 请联系管理员检查API配置');
+              suggestions.push('• 或者尝试切换到Replicate模型');
+            } else {
+              suggestions.push('• 建议您：');
+              suggestions.push('  1. 检查网络连接是否正常');
+              suggestions.push('  2. 尝试切换到Replicate模型');
+              suggestions.push('  3. 如果问题持续，请稍后再试');
             }
-            console.log('方舟SDK调用失败，将尝试使用Replicate备选方案');
+            
+            const fullError = suggestions.length > 0 
+              ? `${fullErrorMessage}\n\n错误详情：${errorMsg}\n\n建议：\n${suggestions.join('\n')}`
+              : `${fullErrorMessage}\n\n错误详情：${errorMsg}`;
+            
+            return res.status(500).json({
+              error: fullError,
+              imageUrl: ''
+            } as ApiResponse);
           }
         }
       }
     }
     
-    // 如果首选方舟失败或首选Replicate，尝试使用Replicate API
-    if ((selectedModel === 'replicate' || modelSwitchInfo) && process.env.REPLICATE_API_KEY && process.env.REPLICATE_API_KEY !== 'YOUR_REPLICATE_API_KEY') {
+    // 如果用户选择的是Replicate模型，调用Replicate API
+    if (selectedModel === 'replicate' && process.env.REPLICATE_API_KEY && process.env.REPLICATE_API_KEY !== 'YOUR_REPLICATE_API_KEY') {
       usedModel = 'Replicate (flux-kontext-apps/professional-headshot)';
       console.log('使用模型:', usedModel);
       
@@ -871,79 +925,85 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
           }
         }
         
-        // 检查是否是Replicate SDK特定的错误
-        if (error && typeof error === 'object') {
-          console.error('错误对象键:', Object.keys(error));
-          if ('status' in error) {
-            console.error('HTTP状态码:', (error as any).status);
-          }
-          if ('response' in error) {
-            console.error('响应对象:', (error as any).response);
-          }
-        }
+        // Replicate调用失败，返回错误提示和建议
+        const errorMsg = error instanceof Error ? error.message : '未知错误';
+        let fullErrorMessage = '证件照生成失败：Replicate调用失败';
+        let suggestions: string[] = [];
         
-        // 统一处理API调用失败，在生产环境也提供备用图片而不是500错误
-        const errorMessage = isDev 
-          ? '开发环境：Replicate调用失败，返回模拟响应'
-          : 'Replicate服务暂时不可用，但我们已为您准备了替代方案';
-        
-        console.log(errorMessage);
-        
-        // 提供更详细的错误信息
-        let detailedMessage = '服务暂时无法处理您的请求';
         if (error instanceof Error) {
           if (error.message.includes('Authentication') || error.message.includes('401')) {
-            detailedMessage = 'API密钥验证失败，请检查 REPLICATE_API_KEY 配置';
+            fullErrorMessage = '证件照生成失败：Replicate API配置错误';
+            suggestions.push('• Replicate API Key未正确配置');
+            suggestions.push('• 请联系管理员检查API配置');
+            suggestions.push('• 或者尝试切换到方舟SDK模型');
           } else if (error.message.includes('timeout') || error.message.includes('超时') || error.message.includes('Timeout')) {
-            detailedMessage = 'Replicate服务响应超时（120秒），图片生成可能需要更长时间，请稍后重试或使用较小的图片';
-            console.error('Replicate超时 - 可能原因：1) 图片太大 2) 网络慢 3) 服务器处理时间长 4) 模型负载高');
+            fullErrorMessage = '证件照生成失败：Replicate请求超时';
+            suggestions.push('• 建议您：');
+            suggestions.push('  1. 检查网络连接是否正常');
+            suggestions.push('  2. 尝试使用较小的图片文件');
+            suggestions.push('  3. 尝试切换到方舟SDK模型');
           } else if (error.message.includes('429')) {
-            detailedMessage = '请求频率限制，请稍后再试';
+            fullErrorMessage = '证件照生成失败：请求频率限制';
+            suggestions.push('• 请稍后再试');
+            suggestions.push('• 或者尝试切换到方舟SDK模型');
           } else {
-            detailedMessage = `Replicate错误: ${error.message ? error.message.substring(0, 100) : '未知错误'}`;
+            suggestions.push('• 建议您：');
+            suggestions.push('  1. 检查网络连接是否正常');
+            suggestions.push('  2. 尝试切换到方舟SDK模型');
+            suggestions.push('  3. 如果问题持续，请稍后再试');
           }
         }
         
-        return res.status(200).json({
-          imageUrl: imageUrl,
-          usedModel: isDev ? 'Mock Response (Replicate Fallback)' : usedModel,
-          modelSwitchInfo: `${modelSwitchInfo || ''} ${detailedMessage}`.trim()
-        });
+        const fullError = suggestions.length > 0 
+          ? `${fullErrorMessage}\n\n错误详情：${errorMsg}\n\n建议：\n${suggestions.join('\n')}`
+          : `${fullErrorMessage}\n\n错误详情：${errorMsg}`;
+        
+        return res.status(500).json({
+          error: fullError,
+          imageUrl: ''
+        } as ApiResponse);
       }
     }
     
-    // 开发环境优化：如果没有可用的API密钥，返回模拟响应
-    if (isDev) {
-      console.log('开发环境：无有效的API密钥，返回模拟响应');
-      // 返回一个模拟的成功响应，包含原始图片URL和一些示例元数据
-      return res.status(200).json({
-        imageUrl: imageUrl, // 在开发环境中返回原始图片作为模拟
-        usedModel: 'Mock Response (Development Mode)',
-        modelSwitchInfo: modelSwitchInfo
-      });
-    } else {
-      // 生产环境：如果没有可用的API密钥，返回错误
-      console.error('未配置有效的API密钥');
-      return res.status(200).json({ 
-        error: '未配置有效的API密钥，请检查环境变量设置',
-        modelSwitchInfo: modelSwitchInfo 
-      });
+    // 如果没有选择模型或模型不可用，返回错误
+    if (!usedModel) {
+      console.error('未选择有效的模型或模型不可用');
+      let errorMessage = '证件照生成失败：未选择有效的模型';
+      let suggestions: string[] = [];
+      
+      if (selectedModel === 'ark' && (!process.env.ARK_API_KEY || process.env.ARK_API_KEY === 'YOUR_ARK_API_KEY')) {
+        errorMessage = '证件照生成失败：方舟SDK未配置';
+        suggestions.push('• 请联系管理员检查API配置');
+        suggestions.push('• 或者尝试切换到Replicate模型');
+      } else if (selectedModel === 'replicate' && (!process.env.REPLICATE_API_KEY || process.env.REPLICATE_API_KEY === 'YOUR_REPLICATE_API_KEY')) {
+        errorMessage = '证件照生成失败：Replicate未配置';
+        suggestions.push('• 请联系管理员检查API配置');
+        suggestions.push('• 或者尝试切换到方舟SDK模型');
+      } else {
+        suggestions.push('• 请选择一个可用的模型');
+      }
+      
+      const fullError = suggestions.length > 0 
+        ? `${errorMessage}\n\n建议：\n${suggestions.join('\n')}`
+        : errorMessage;
+      
+      return res.status(400).json({
+        error: fullError,
+        imageUrl: ''
+      } as ApiResponse);
     }
   } catch (error) {
     console.error('证件照生成错误:', error);
     
-    // 最外层错误处理：确保不返回500错误，而是提供友好的备用方案
+    // 最外层错误处理：返回错误信息
     const finalErrorMessage = error instanceof Error 
       ? error.message 
       : '处理请求时发生错误';
       
-    console.log('最终错误处理：提供备用响应而不是500错误');
-    
-    return res.status(200).json({
-      imageUrl: imageUrl || '',
-      usedModel: usedModel || '错误处理模式',
-      modelSwitchInfo: `${modelSwitchInfo || ''} 系统遇到了一个意外问题`.trim()
-    });
+    return res.status(500).json({
+      error: `证件照生成失败：${finalErrorMessage}\n\n建议：请检查网络连接或尝试切换模型`,
+      imageUrl: ''
+    } as ApiResponse);
   }
 };
 

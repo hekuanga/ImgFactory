@@ -877,7 +877,7 @@ const PassportPhoto: NextPage = () => {
                 <p className='mt-2 text-xs text-slate-600 text-left leading-relaxed'>
                   * {t.passportPhoto.arkSDKDesc}<br/>
                   * {t.passportPhoto.replicateDesc}<br/>
-                  * {t.passportPhoto.modelSwitchNote}
+                  * {t.passportPhoto.modelSwitchSuggestion}
                 </p>
               </div>
             </div>

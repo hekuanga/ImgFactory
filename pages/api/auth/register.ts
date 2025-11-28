@@ -113,7 +113,7 @@ export default async function handler(
               emailVerified: user.email_confirmed_at ? true : false,
               name: user.user_metadata?.name || metadata?.name || null,
               image: user.user_metadata?.avatar_url || null,
-              credits: isNewUser ? 1 : 0, // 新用户赠送1积分
+              credits: isNewUser ? 2 : 0, // 新用户赠送2积分
             },
           });
 
@@ -122,12 +122,12 @@ export default async function handler(
             await tx.creditHistory.create({
               data: {
                 userId: userId,
-                amount: 1,
+                amount: 2,
                 type: 'bonus',
                 description: '新用户注册奖励'
               }
             });
-            console.log(`New user registered: ${userId}, bonus 1 credit added`);
+            console.log(`New user registered: ${userId}, bonus 2 credits added`);
           }
         });
       } catch (dbError) {
@@ -191,7 +191,7 @@ export default async function handler(
               emailVerified: false,
               name: user.user_metadata?.name || metadata?.name || null,
               image: user.user_metadata?.avatar_url || null,
-              credits: isNewUser ? 1 : 0, // 新用户赠送1积分
+              credits: isNewUser ? 2 : 0, // 新用户赠送2积分
             },
           });
 
@@ -200,12 +200,12 @@ export default async function handler(
             await tx.creditHistory.create({
               data: {
                 userId: userId,
-                amount: 1,
+                amount: 2,
                 type: 'bonus',
                 description: '新用户注册奖励'
               }
             });
-            console.log(`New user registered (email verification required): ${userId}, bonus 1 credit added`);
+            console.log(`New user registered (email verification required): ${userId}, bonus 2 credits added`);
           }
         });
       } catch (dbError) {

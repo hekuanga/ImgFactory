@@ -59,13 +59,14 @@ export const en = {
     originalPhotoAlt: 'Original Photo',
     restoredPhotoAlt: 'Restored Photo',
     insufficientCredits: 'Insufficient credits. Please recharge your credits first.',
+    loginRequired: 'Please log in first to use the photo restoration feature.',
     // Model names
     modelArkSDK: 'Ark SDK',
     modelReplicate: 'Replicate',
     // Model descriptions
     arkSDKDesc: 'Ark SDK: Doubao official AI model, high color reproduction, more natural details',
     replicateDesc: 'Replicate: Open source model, faster response speed',
-    modelSwitchNote: 'When the preferred model call fails, the system will automatically try the alternative model',
+    modelSwitchSuggestion: 'We suggest switching to another model and trying again',
   },
   // Passport photo page
   passportPhoto: {
@@ -77,6 +78,7 @@ export const en = {
     uploadPhoto: 'Upload Photo',
     currentUsedModel: 'Current Model Used',
     insufficientCredits: 'Insufficient credits. Please recharge credits before generating ID photos.',
+    loginRequired: 'Please log in first to use the ID photo generation feature.',
     originalImage: 'Original Image',
     originalImageLoadFailed: 'Original image load failed',
     uploadedPhoto: 'Uploaded Photo',
@@ -87,6 +89,7 @@ export const en = {
     generate: 'Generate ID Photo',
     loading: 'Generating...',
     fileSizeExceeded: 'Image size cannot exceed 20MB',
+    modelSwitchSuggestion: 'We suggest switching to another model and trying again',
     uploadNewPhoto: 'Upload New Photo',
     regenerate: 'Regenerate',
     download: 'Download ID Photo',
@@ -113,7 +116,7 @@ export const en = {
     // Model descriptions
     arkSDKDesc: 'Ark SDK: Doubao official AI model, high color reproduction, more natural portrait details',
     replicateDesc: 'Replicate: Third-party open-source model, faster response speed, suitable for simple ID photo generation',
-    modelSwitchNote: 'When the preferred model call fails, the system will automatically try the alternative model',
+    modelSwitchSuggestion: 'We suggest switching to another model and trying again',
   },
   // Common
   common: {

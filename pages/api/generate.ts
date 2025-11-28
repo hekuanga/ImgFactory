@@ -656,35 +656,55 @@ export default async function handler(
   // 保存用户信息，用于后续积分扣除
   let authenticatedUser: { id: string } | null = null;
   
-  // 检查用户积分（在开始处理之前）
+  // 检查用户登录状态和积分（在开始处理之前）
   try {
     const user = await verifyAuth(req, res);
-    if (user) {
-      // 保存用户信息，用于后续积分扣除
-      authenticatedUser = { id: user.id };
-      
-      const userRecord = await (prisma.user.findUnique as any)({
-        where: { id: user.id },
-        select: { credits: true }
+    if (!user) {
+      // 用户未登录，返回错误并停止API调用
+      console.warn('用户未登录，无法生成照片');
+      return res.status(401).json({
+        error: 'UNAUTHORIZED',
+        message: '请先登录后才能使用照片修复功能。'
       });
+    }
+    
+    // 保存用户信息，用于后续积分扣除
+    authenticatedUser = { id: user.id };
+    
+    const userRecord = await (prisma.user.findUnique as any)({
+      where: { id: user.id },
+      select: { credits: true }
+    });
 
-      const currentCredits = userRecord?.credits || 0;
-      
-      if (currentCredits < 1) {
-        console.warn('用户积分不足，无法生成照片');
-        return res.status(400).json({
-          error: 'INSUFFICIENT_CREDITS',
-          message: '您的积分不足，无法生成照片。请先充值积分。'
-        });
-      }
+    const currentCredits = userRecord?.credits || 0;
+    
+    if (currentCredits < 1) {
+      console.warn('用户积分不足，无法生成照片');
+      return res.status(400).json({
+        error: 'INSUFFICIENT_CREDITS',
+        message: '您的积分不足，无法生成照片。请先充值积分。'
+      });
     }
   } catch (creditCheckError: any) {
     // 如果是列不存在错误（P2022），允许继续（兼容旧数据库）
     if (creditCheckError?.code === 'P2022' || creditCheckError?.message?.includes('does not exist')) {
       console.warn('Credits column does not exist, skipping credit check');
+      // 即使列不存在，仍然需要检查登录状态
+      const user = await verifyAuth(req, res);
+      if (!user) {
+        return res.status(401).json({
+          error: 'UNAUTHORIZED',
+          message: '请先登录后才能使用照片修复功能。'
+        });
+      }
+      authenticatedUser = { id: user.id };
     } else {
-      // 其他错误（如未登录）允许继续，匿名用户也可以使用
-      console.log('Credit check failed (user may not be logged in), allowing request to continue');
+      // 其他错误（如未登录）返回错误
+      console.log('Credit check failed:', creditCheckError);
+      return res.status(401).json({
+        error: 'UNAUTHORIZED',
+        message: '请先登录后才能使用照片修复功能。'
+      });
     }
   }
   
@@ -711,19 +731,11 @@ export default async function handler(
   }
   
   const startTime = Date.now();
-  let finalResult: { imageUrl: string; usedModel: string; modelSwitchInfo?: string } | null = null;
-  let hasAttemptedArk = false;
-  let hasAttemptedReplicate = false;
-  // 保存详细的错误信息，用于最终的错误提示
-  let arkErrorType: string | null = null;
-  let arkErrorMessage: string | null = null;
-  let replicateErrorType: string | null = null;
-  let replicateErrorMessage: string | null = null;
+  let finalResult: { imageUrl: string; usedModel: string } | null = null;
   
   try {
-    // 尝试使用首选模型
+    // 只调用用户选择的模型，不自动切换
     if (selectedModel === 'ark') {
-      hasAttemptedArk = true;
       const arkResult = await callArkSDK(imageUrl);
       
       if (arkResult.success && arkResult.result) {
@@ -732,43 +744,34 @@ export default async function handler(
           usedModel: '方舟SDK'
         };
       } else {
-        // 检查是否是敏感内容检测错误
+        // 方舟SDK调用失败，给出错误提示和建议
+        const errorMessage = arkResult.error || '未知错误';
         const isSensitiveError = (arkResult as any).shouldSwitchToReplicate === true;
-        // 保存错误信息
-        arkErrorType = isSensitiveError ? 'OUTPUT_SENSITIVE_DETECTED' : 'OTHER';
-        arkErrorMessage = arkResult.error || '未知错误';
         
-        const errorMsg = isSensitiveError 
-          ? '方舟SDK检测到敏感内容（可能是误判），已自动切换到Replicate模型'
-          : '方舟SDK调用失败，尝试切换到Replicate';
-        console.warn(errorMsg, arkResult.error);
+        let fullErrorMessage = '照片修复失败：方舟SDK调用失败';
+        let suggestions: string[] = [];
         
-        // 尝试备用模型
-        hasAttemptedReplicate = true;
-        const replicateResult = await callReplicate(imageUrl);
-        
-        if (replicateResult.success && replicateResult.result) {
-          finalResult = {
-            imageUrl: replicateResult.result,
-            usedModel: 'Replicate',
-            modelSwitchInfo: isSensitiveError 
-              ? '方舟SDK检测到敏感内容（可能是误判），已自动切换到Replicate模型'
-              : '方舟SDK暂时不可用，已自动切换到Replicate模型'
-          };
+        if (isSensitiveError) {
+          fullErrorMessage = '照片修复失败：检测到敏感内容（可能是误判）';
+          suggestions.push('• 这可能是AI误判，建议您：');
+          suggestions.push('  1. 尝试更换其他图片重新生成');
+          suggestions.push('  2. 尝试切换到Replicate模型');
+          suggestions.push('  3. 确保图片内容符合使用规范');
         } else {
-          // Replicate也失败了，记录详细错误信息
-          replicateErrorType = replicateResult.error?.includes('认证失败') || replicateResult.error?.includes('Authentication failed') 
-            ? 'AUTH_FAILED' 
-            : 'OTHER';
-          replicateErrorMessage = replicateResult.error || '未知错误';
-          console.error('Replicate调用也失败:', replicateResult.error);
-          if (replicateErrorType === 'AUTH_FAILED') {
-            console.error('Replicate API Key未正确配置，无法切换到备用模型');
-          }
+          suggestions.push('• 建议您：');
+          suggestions.push('  1. 检查网络连接是否正常');
+          suggestions.push('  2. 尝试切换到Replicate模型');
+          suggestions.push('  3. 如果问题持续，请稍后再试');
         }
+        
+        const fullError = suggestions.length > 0 
+          ? `${fullErrorMessage}\n\n错误详情：${errorMessage}\n\n建议：\n${suggestions.join('\n')}`
+          : `${fullErrorMessage}\n\n错误详情：${errorMessage}`;
+        
+        return res.status(500).json(fullError);
       }
     } else {
-      hasAttemptedReplicate = true;
+      // 使用Replicate模型
       const replicateResult = await callReplicate(imageUrl);
       
       if (replicateResult.success && replicateResult.result) {
@@ -777,91 +780,31 @@ export default async function handler(
           usedModel: 'Replicate'
         };
       } else {
-        // 保存Replicate错误信息
-        replicateErrorType = replicateResult.error?.includes('认证失败') || replicateResult.error?.includes('Authentication failed') 
-          ? 'AUTH_FAILED' 
-          : 'OTHER';
-        replicateErrorMessage = replicateResult.error || '未知错误';
+        // Replicate调用失败，给出错误提示和建议
+        const errorMessage = replicateResult.error || '未知错误';
+        const isAuthFailed = errorMessage.includes('认证失败') || errorMessage.includes('Authentication failed');
         
-        console.warn('Replicate调用失败，尝试切换到方舟SDK:', replicateResult.error);
+        let fullErrorMessage = '照片修复失败：Replicate调用失败';
+        let suggestions: string[] = [];
         
-        // 尝试备用模型
-        hasAttemptedArk = true;
-        const arkResult = await callArkSDK(imageUrl);
-        
-        if (arkResult.success && arkResult.result) {
-          finalResult = {
-            imageUrl: arkResult.result,
-            usedModel: '方舟SDK',
-            modelSwitchInfo: 'Replicate暂时不可用，已自动切换到方舟SDK模型'
-          };
-        } else {
-          // 方舟SDK也失败了，保存错误信息
-          const isSensitiveError = (arkResult as any).shouldSwitchToReplicate === true;
-          arkErrorType = isSensitiveError ? 'OUTPUT_SENSITIVE_DETECTED' : 'OTHER';
-          arkErrorMessage = arkResult.error || '未知错误';
-        }
-      }
-    }
-    
-    // 如果两个模型都失败了
-    if (!finalResult) {
-      console.error('所有模型调用都失败了');
-      let errorMessage = '照片修复失败';
-      let suggestions: string[] = [];
-      
-      // 根据错误类型提供详细的错误信息和建议
-      if (hasAttemptedArk && hasAttemptedReplicate) {
-        // 两个模型都尝试了
-        
-        // 检查是否是敏感内容检测错误
-        if (arkErrorType === 'OUTPUT_SENSITIVE_DETECTED') {
-          errorMessage = '照片修复失败：检测到敏感内容';
-          suggestions.push('• 这可能是AI误判，建议您：');
-          suggestions.push('  1. 尝试更换其他图片重新生成');
-          suggestions.push('  2. 尝试切换到另一个模型（如果当前使用的是方舟SDK，可以尝试Replicate，反之亦然）');
-          suggestions.push('  3. 确保图片内容符合使用规范');
-        } else if (replicateErrorType === 'AUTH_FAILED') {
-          errorMessage = '照片修复失败：Replicate API配置错误';
-          suggestions.push('• Replicate API Key未正确配置，无法使用备用模型');
-          suggestions.push('• 请联系管理员检查API配置');
-        } else {
-          errorMessage = '照片修复失败：所有AI模型暂时不可用';
-          suggestions.push('• 请稍后再试');
-          suggestions.push('• 如果问题持续，请联系技术支持');
-        }
-      } else if (hasAttemptedArk) {
-        // 只尝试了方舟SDK
-        if (arkErrorType === 'OUTPUT_SENSITIVE_DETECTED') {
-          errorMessage = '照片修复失败：检测到敏感内容';
-          suggestions.push('• 这可能是AI误判，建议您：');
-          suggestions.push('  1. 尝试更换其他图片重新生成');
-          suggestions.push('  2. 尝试切换到Replicate模型');
-          suggestions.push('  3. 确保图片内容符合使用规范');
-        } else {
-          errorMessage = '照片修复失败：方舟SDK暂时不可用';
-          suggestions.push('• 请稍后再试');
-          suggestions.push('• 可以尝试切换到Replicate模型');
-        }
-      } else if (hasAttemptedReplicate) {
-        // 只尝试了Replicate
-        if (replicateErrorType === 'AUTH_FAILED') {
-          errorMessage = '照片修复失败：Replicate API配置错误';
+        if (isAuthFailed) {
+          fullErrorMessage = '照片修复失败：Replicate API配置错误';
           suggestions.push('• Replicate API Key未正确配置');
           suggestions.push('• 请联系管理员检查API配置');
+          suggestions.push('• 或者尝试切换到方舟SDK模型');
         } else {
-          errorMessage = '照片修复失败：Replicate暂时不可用';
-          suggestions.push('• 请稍后再试');
-          suggestions.push('• 可以尝试切换到方舟SDK模型');
+          suggestions.push('• 建议您：');
+          suggestions.push('  1. 检查网络连接是否正常');
+          suggestions.push('  2. 尝试切换到方舟SDK模型');
+          suggestions.push('  3. 如果问题持续，请稍后再试');
         }
+        
+        const fullError = suggestions.length > 0 
+          ? `${fullErrorMessage}\n\n错误详情：${errorMessage}\n\n建议：\n${suggestions.join('\n')}`
+          : `${fullErrorMessage}\n\n错误详情：${errorMessage}`;
+        
+        return res.status(500).json(fullError);
       }
-      
-      // 组合错误消息和建议
-      const fullErrorMessage = suggestions.length > 0 
-        ? `${errorMessage}\n\n建议：\n${suggestions.join('\n')}`
-        : errorMessage;
-      
-      return res.status(500).json(fullErrorMessage);
     }
     
     const endTime = Date.now();

@@ -332,7 +332,7 @@ const Home: NextPage = () => {
             <p className='text-xs text-slate-600 text-left leading-relaxed'>
               * {t.restore.arkSDKDesc}<br/>
               * {t.restore.replicateDesc}<br/>
-              * {t.restore.modelSwitchNote}
+              * {t.restore.modelSwitchSuggestion}
             </p>
           </div>
         </div>
