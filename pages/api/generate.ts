@@ -34,9 +34,8 @@ async function callArkSDK(imageUrl: string): Promise<{ success: boolean; result?
   
   // 检查方舟SDK API密钥
   if (!process.env.ARK_API_KEY || process.env.ARK_API_KEY === 'YOUR_ARK_API_KEY') {
-    const errorMsg = '方舟SDK API密钥未配置';
-    console.error(errorMsg);
-    return { success: false, error: errorMsg };
+    console.error('方舟SDK API密钥未配置');
+    return { success: false, error: '方舟SDK服务暂时不可用' };
   }
   
   // 开发环境优化：简化API密钥验证逻辑，允许即使没有密钥也能提供模拟响应
@@ -189,12 +188,12 @@ async function callArkSDK(imageUrl: string): Promise<{ success: boolean; result?
         console.log('方舟SDK错误码:', errorCode || '未知');
         console.log('方舟SDK错误详情:', errorDetailText);
 
-        // 根据状态码提供更具体的错误信息（双语排查提示）
-        let errorMessage = `方舟SDK API错误: ${response.status} ${response.statusText}`;
+        // 根据状态码提供更具体的错误信息（不暴露配置信息）
+        let errorMessage = `方舟SDK服务错误: ${response.status}`;
         if (response.status === 401) {
-          errorMessage = '方舟SDK API认证失败：请检查 ARK_API_KEY 是否正确\nAuthentication failed: Please check ARK_API_KEY';
+          errorMessage = '方舟SDK服务认证失败';
         } else if (response.status === 403) {
-          errorMessage = '方舟SDK API权限不足：请检查 API 密钥权限\nForbidden: Please check API key permissions';
+          errorMessage = '方舟SDK服务权限不足';
         } else if (response.status === 400 || response.status === 422) {
           // 检查是否是敏感内容检测错误
           if (errorCode === 'InputImageSensitiveContentDetected') {
@@ -324,14 +323,13 @@ async function callArkSDK(imageUrl: string): Promise<{ success: boolean; result?
         await new Promise(resolve => setTimeout(resolve, waitTime));
       } else {
         // 所有重试都失败了
-        let errorMsg = '方舟SDK调用失败';
+        let errorMsg = '方舟SDK服务暂时不可用';
         if (error instanceof Error) {
           if (error.message.includes('ENOTFOUND') || error.message.includes('getaddrinfo')) {
-            // 明确标识域名解析问题
-            errorMsg = '方舟SDK网络连接失败：无法解析API域名，可能是网络限制或防火墙阻止';
-          } else {
-            errorMsg += `: ${error.message}`;
+            // 不暴露技术细节
+            errorMsg = '方舟SDK服务暂时不可用';
           }
+          // 不将详细错误消息传递给前端
         }
         return { success: false, error: errorMsg };
       }
@@ -358,10 +356,9 @@ async function callReplicate(imageUrl: string): Promise<{ success: boolean; resu
   console.log('  - 是否包含换行符:', replicateApiKey?.includes('\n') || replicateApiKey?.includes('\r') || false);
   
   if (!replicateApiKey || replicateApiKey === 'YOUR_REPLICATE_API_KEY' || replicateApiKey.trim() === '') {
-    const errorMsg = 'Replicate API密钥未配置或无效';
-    console.error(errorMsg);
+    console.error('Replicate API密钥未配置或无效');
     console.error('请检查环境变量 REPLICATE_API_KEY 是否正确设置');
-    return { success: false, error: errorMsg };
+    return { success: false, error: 'Replicate服务暂时不可用' };
   }
   
   // 清理 API Key（移除可能的空格和换行符）
@@ -487,7 +484,7 @@ async function callReplicate(imageUrl: string): Promise<{ success: boolean; resu
         console.log('Replicate错误详情:', errorDetailText);
 
         // 根据状态码提供更具体的错误信息（双语排查提示）
-        let errorMessage = `Replicate API错误: ${startResponse.status} ${startResponse.statusText}`;
+        let errorMessage = `Replicate服务错误: ${startResponse.status}`;
         if (startResponse.status === 401) {
           console.error('Replicate API 认证失败详情:');
           console.error('  - API Key 是否存在:', !!replicateApiKey);
@@ -495,9 +492,9 @@ async function callReplicate(imageUrl: string): Promise<{ success: boolean; resu
           console.error('  - API Key 格式检查:', replicateApiKey?.startsWith('r8_') ? '✓ 正确格式 (r8_开头)' : '✗ 格式错误 (应以 r8_ 开头)');
           console.error('  - API Key 前缀:', replicateApiKey?.substring(0, 10) || 'N/A');
           console.error('  - 错误响应:', errorDetailText);
-          errorMessage = 'Replicate API认证失败：请检查 REPLICATE_API_KEY 是否正确配置\nAuthentication failed: Please check REPLICATE_API_KEY\n提示：Replicate API Key 应以 "r8_" 开头，请确认环境变量已正确设置';
+          errorMessage = 'Replicate服务认证失败';
         } else if (startResponse.status === 403) {
-          errorMessage = 'Replicate API权限不足：请检查 API 密钥权限\nForbidden: Please check API key permissions';
+          errorMessage = 'Replicate服务权限不足';
         } else if (startResponse.status === 400 || startResponse.status === 422) {
           errorMessage = `Replicate API请求格式错误: ${errorDetailText.substring(0, 200)}\nRequest format error: Please check request parameters`;
         } else if (startResponse.status === 413) {
@@ -615,13 +612,13 @@ async function callReplicate(imageUrl: string): Promise<{ success: boolean; resu
         await new Promise(resolve => setTimeout(resolve, waitTime));
       } else {
         // 所有重试都失败了
-        let errorMsg = 'Replicate调用失败';
+        let errorMsg = 'Replicate服务暂时不可用';
         if (error instanceof Error) {
           if (error.message.includes('ENOTFOUND') || error.message.includes('getaddrinfo')) {
-            errorMsg = 'Replicate网络连接失败：无法解析API域名，可能是网络限制或防火墙阻止';
-          } else {
-            errorMsg += `: ${error.message}`;
+            // 不暴露技术细节
+            errorMsg = 'Replicate服务暂时不可用';
           }
+          // 不将详细错误消息传递给前端
         }
         return { success: false, error: errorMsg };
       }
@@ -761,8 +758,8 @@ export default async function handler(
         }
         
         const fullError = suggestions.length > 0 
-          ? `${fullErrorMessage}\n\n错误详情：${errorMessage}\n\n建议：\n${suggestions.join('\n')}`
-          : `${fullErrorMessage}\n\n错误详情：${errorMessage}`;
+          ? `${fullErrorMessage}\n\n建议：\n${suggestions.join('\n')}`
+          : fullErrorMessage;
         
         return res.status(500).json(fullError);
       }
@@ -780,14 +777,15 @@ export default async function handler(
         const errorMessage = replicateResult.error || '未知错误';
         const isAuthFailed = errorMessage.includes('认证失败') || errorMessage.includes('Authentication failed');
         
-        let fullErrorMessage = '照片修复失败：Replicate调用失败';
+        let fullErrorMessage = '照片修复失败：Replicate服务暂时不可用';
         let suggestions: string[] = [];
         
         if (isAuthFailed) {
-          fullErrorMessage = '照片修复失败：Replicate API配置错误';
-          suggestions.push('• Replicate API Key未正确配置');
-          suggestions.push('• 请联系管理员检查API配置');
-          suggestions.push('• 或者尝试切换到方舟SDK模型');
+          fullErrorMessage = '照片修复失败：Replicate服务暂时不可用';
+          suggestions.push('• 建议您：');
+          suggestions.push('  1. 请稍后再试');
+          suggestions.push('  2. 尝试切换到方舟SDK模型');
+          suggestions.push('  3. 如果问题持续，请联系客服');
         } else {
           suggestions.push('• 建议您：');
           suggestions.push('  1. 检查网络连接是否正常');
@@ -796,8 +794,8 @@ export default async function handler(
         }
         
         const fullError = suggestions.length > 0 
-          ? `${fullErrorMessage}\n\n错误详情：${errorMessage}\n\n建议：\n${suggestions.join('\n')}`
-          : `${fullErrorMessage}\n\n错误详情：${errorMessage}`;
+          ? `${fullErrorMessage}\n\n建议：\n${suggestions.join('\n')}`
+          : fullErrorMessage;
         
         return res.status(500).json(fullError);
       }
@@ -857,7 +855,7 @@ export default async function handler(
   } catch (error) {
     console.error('照片修复API调用异常:', error);
     
-    const errorMsg = error instanceof Error ? `照片修复失败: ${error.message}` : '照片修复过程中发生未知错误';
-    return res.status(500).json(errorMsg);
+    // 返回通用错误信息（不暴露技术细节）
+    return res.status(500).json('照片修复失败：服务暂时不可用\n\n建议：\n• 请检查网络连接\n• 尝试切换模型\n• 如果问题持续，请稍后再试或联系客服');
   }
 }

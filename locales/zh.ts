@@ -60,6 +60,10 @@ export const zh = {
     restoredPhotoAlt: '修复后照片',
     insufficientCredits: '您的积分不足，无法生成照片。请先充值积分。',
     loginRequired: '请先登录后才能使用照片修复功能。',
+    apiAuthError: '服务暂时不可用，请稍后再试或尝试切换模型。',
+    apiPermissionError: '服务暂时不可用，请稍后再试或尝试切换模型。',
+    apiConfigError: '服务暂时不可用，请联系客服或尝试切换模型。',
+    apiServiceUnavailable: '服务暂时不可用，请稍后再试。',
     // Model names
     modelArkSDK: '方舟SDK',
     modelReplicate: 'Replicate',

@@ -465,20 +465,20 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
             console.log('方舟SDK错误码:', errorCode || '未知');
             console.log('方舟SDK错误详情:', errorDetailText);
 
-            // 根据状态码提供更具体的错误信息（双语排查提示）
-            let errorMessage = `方舟SDK API错误: ${response.status} ${response.statusText}`;
+            // 根据状态码提供更具体的错误信息（不暴露配置信息）
+            let errorMessage = `方舟SDK服务错误: ${response.status}`;
             if (response.status === 401) {
-              errorMessage = '方舟SDK API认证失败：请检查 ARK_API_KEY 是否正确\nAuthentication failed: Please check ARK_API_KEY';
+              errorMessage = '方舟SDK服务认证失败';
             } else if (response.status === 403) {
-              errorMessage = '方舟SDK API权限不足：请检查 API 密钥权限\nForbidden: Please check API key permissions';
+              errorMessage = '方舟SDK服务权限不足';
             } else if (response.status === 400 || response.status === 422) {
-              errorMessage = `方舟SDK API请求格式错误: ${errorDetailText.substring(0, 200)}\nRequest format error: Please check request parameters`;
+              errorMessage = '方舟SDK服务请求格式错误';
             } else if (response.status === 413) {
-              errorMessage = '方舟SDK API请求体过大：图片太大，请压缩后重试\nRequest too large: Please compress the image';
+              errorMessage = '图片太大，请压缩后重试';
             } else if (response.status === 429) {
-              errorMessage = '方舟SDK API请求频率限制：请稍后再试\nRate limit exceeded: Please try again later';
+              errorMessage = '请求频率限制，请稍后再试';
             } else if (response.status >= 500) {
-              errorMessage = '方舟SDK服务器错误：服务暂时不可用，请稍后再试\nServer error: Service temporarily unavailable';
+              errorMessage = '方舟SDK服务暂时不可用，请稍后再试';
             }
 
             // 针对特定错误码提供额外提示
@@ -634,7 +634,8 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
           } else if (error instanceof Error && error.message.includes('ARK_API_KEY')) {
             console.error('API密钥配置错误：', error.message);
             if (retryCount >= maxRetries) {
-              modelSwitchInfo = '方舟SDK API密钥未配置或无效，请检查环境变量';
+              // 不暴露配置信息，只记录到日志
+              modelSwitchInfo = '方舟SDK服务暂时不可用';
             }
           } else if (error instanceof Error && error.message.includes('请求体过大')) {
             console.error('请求体过大：DataURL 太大，需要压缩图片');
@@ -644,8 +645,8 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
           } else {
             console.error('其他错误类型:', error);
             if (retryCount >= maxRetries) {
-              const errorMsg = error instanceof Error ? error.message : String(error);
-              modelSwitchInfo = `方舟SDK调用失败: ${errorMsg.substring(0, 100)}，将尝试使用Replicate备选方案`;
+              // 不暴露详细错误信息
+              modelSwitchInfo = '方舟SDK服务暂时不可用';
             }
           }
           
@@ -658,12 +659,11 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
             await new Promise(resolve => setTimeout(resolve, waitTime));
           } else {
             // 所有重试都失败，返回错误提示和建议
-            const errorMsg = error instanceof Error ? error.message : '未知错误';
-            let fullErrorMessage = '证件照生成失败：方舟SDK调用失败';
+            let fullErrorMessage = '证件照生成失败：方舟SDK服务暂时不可用';
             let suggestions: string[] = [];
             
             if (error instanceof Error && (error.name === 'AbortError' || error.message.includes('aborted') || error.message.includes('timeout'))) {
-              fullErrorMessage = '证件照生成失败：方舟SDK请求超时';
+              fullErrorMessage = '证件照生成失败：请求超时';
               suggestions.push('• 建议您：');
               suggestions.push('  1. 检查网络连接是否正常');
               suggestions.push('  2. 尝试使用较小的图片文件');
@@ -675,9 +675,11 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
               suggestions.push('  2. 尝试切换到Replicate模型');
               suggestions.push('  3. 如果问题持续，请稍后再试');
             } else if (error instanceof Error && error.message.includes('ARK_API_KEY')) {
-              fullErrorMessage = '证件照生成失败：方舟SDK API密钥配置错误';
-              suggestions.push('• 请联系管理员检查API配置');
-              suggestions.push('• 或者尝试切换到Replicate模型');
+              fullErrorMessage = '证件照生成失败：方舟SDK服务暂时不可用';
+              suggestions.push('• 建议您：');
+              suggestions.push('  1. 请稍后再试');
+              suggestions.push('  2. 尝试切换到Replicate模型');
+              suggestions.push('  3. 如果问题持续，请联系客服');
             } else {
               suggestions.push('• 建议您：');
               suggestions.push('  1. 检查网络连接是否正常');
@@ -686,8 +688,8 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
             }
             
             const fullError = suggestions.length > 0 
-              ? `${fullErrorMessage}\n\n错误详情：${errorMsg}\n\n建议：\n${suggestions.join('\n')}`
-              : `${fullErrorMessage}\n\n错误详情：${errorMsg}`;
+              ? `${fullErrorMessage}\n\n建议：\n${suggestions.join('\n')}`
+              : fullErrorMessage;
             
             return res.status(500).json({
               error: fullError,
@@ -800,23 +802,23 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
         if (!startResponse.ok) {
           console.error('Replicate API 错误:', jsonStartResponse);
           
-          // 根据状态码提供更具体的错误信息
-          let errorMessage = `Replicate API错误: ${startResponse.status} ${startResponse.statusText}`;
+          // 根据状态码提供更具体的错误信息（不暴露配置信息）
+          let errorMessage = `Replicate服务错误: ${startResponse.status}`;
           if (startResponse.status === 401) {
-            errorMessage = 'Replicate API认证失败：请检查 REPLICATE_API_KEY 是否正确';
+            errorMessage = 'Replicate服务认证失败';
             console.error('API 认证失败：请检查环境变量中的 REPLICATE_API_KEY');
           } else if (startResponse.status === 400) {
             const errorDetail = jsonStartResponse.error || jsonStartResponse.detail || '请求格式错误';
-            errorMessage = `Replicate API请求格式错误: ${typeof errorDetail === 'string' ? errorDetail.substring(0, 200) : JSON.stringify(errorDetail).substring(0, 200)}`;
+            errorMessage = 'Replicate服务请求格式错误';
             console.error('请求格式错误详情:', errorDetail);
           } else if (startResponse.status === 413) {
-            errorMessage = 'Replicate API请求体过大：图片太大，请压缩后重试';
+            errorMessage = '图片太大，请压缩后重试';
             console.error('请求体过大：图片太大');
           } else if (startResponse.status === 429) {
-            errorMessage = 'Replicate API请求频率限制：请稍后再试';
+            errorMessage = '请求频率限制，请稍后再试';
             console.error('请求频率限制：已达到 API 调用限制');
           } else if (startResponse.status >= 500) {
-            errorMessage = 'Replicate服务器错误：服务暂时不可用，请稍后再试';
+            errorMessage = 'Replicate服务暂时不可用，请稍后再试';
             console.error('服务器错误：Replicate 服务暂时不可用');
           }
           
@@ -922,18 +924,18 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
         }
         
         // Replicate调用失败，返回错误提示和建议
-        const errorMsg = error instanceof Error ? error.message : '未知错误';
-        let fullErrorMessage = '证件照生成失败：Replicate调用失败';
+        let fullErrorMessage = '证件照生成失败：Replicate服务暂时不可用';
         let suggestions: string[] = [];
         
         if (error instanceof Error) {
           if (error.message.includes('Authentication') || error.message.includes('401')) {
-            fullErrorMessage = '证件照生成失败：Replicate API配置错误';
-            suggestions.push('• Replicate API Key未正确配置');
-            suggestions.push('• 请联系管理员检查API配置');
-            suggestions.push('• 或者尝试切换到方舟SDK模型');
+            fullErrorMessage = '证件照生成失败：Replicate服务暂时不可用';
+            suggestions.push('• 建议您：');
+            suggestions.push('  1. 请稍后再试');
+            suggestions.push('  2. 尝试切换到方舟SDK模型');
+            suggestions.push('  3. 如果问题持续，请联系客服');
           } else if (error.message.includes('timeout') || error.message.includes('超时') || error.message.includes('Timeout')) {
-            fullErrorMessage = '证件照生成失败：Replicate请求超时';
+            fullErrorMessage = '证件照生成失败：请求超时';
             suggestions.push('• 建议您：');
             suggestions.push('  1. 检查网络连接是否正常');
             suggestions.push('  2. 尝试使用较小的图片文件');
@@ -951,8 +953,8 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
         }
         
         const fullError = suggestions.length > 0 
-          ? `${fullErrorMessage}\n\n错误详情：${errorMsg}\n\n建议：\n${suggestions.join('\n')}`
-          : `${fullErrorMessage}\n\n错误详情：${errorMsg}`;
+          ? `${fullErrorMessage}\n\n建议：\n${suggestions.join('\n')}`
+          : fullErrorMessage;
         
         return res.status(500).json({
           error: fullError,
@@ -968,13 +970,15 @@ const processRequest = async (req: NextApiRequest, res: NextApiResponse<ApiRespo
       let suggestions: string[] = [];
       
       if (selectedModel === 'ark' && (!process.env.ARK_API_KEY || process.env.ARK_API_KEY === 'YOUR_ARK_API_KEY')) {
-        errorMessage = '证件照生成失败：方舟SDK未配置';
-        suggestions.push('• 请联系管理员检查API配置');
-        suggestions.push('• 或者尝试切换到Replicate模型');
+        errorMessage = '证件照生成失败：方舟SDK服务暂时不可用';
+        suggestions.push('• 建议您：');
+        suggestions.push('  1. 尝试切换到Replicate模型');
+        suggestions.push('  2. 如果问题持续，请联系客服');
       } else if (selectedModel === 'replicate' && (!process.env.REPLICATE_API_KEY || process.env.REPLICATE_API_KEY === 'YOUR_REPLICATE_API_KEY')) {
-        errorMessage = '证件照生成失败：Replicate未配置';
-        suggestions.push('• 请联系管理员检查API配置');
-        suggestions.push('• 或者尝试切换到方舟SDK模型');
+        errorMessage = '证件照生成失败：Replicate服务暂时不可用';
+        suggestions.push('• 建议您：');
+        suggestions.push('  1. 尝试切换到方舟SDK模型');
+        suggestions.push('  2. 如果问题持续，请联系客服');
       } else {
         suggestions.push('• 请选择一个可用的模型');
       }

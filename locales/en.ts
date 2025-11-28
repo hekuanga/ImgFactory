@@ -60,6 +60,10 @@ export const en = {
     restoredPhotoAlt: 'Restored Photo',
     insufficientCredits: 'Insufficient credits. Please recharge your credits first.',
     loginRequired: 'Please log in first to use the photo restoration feature.',
+    apiAuthError: 'Service temporarily unavailable. Please try again later or switch to another model.',
+    apiPermissionError: 'Service temporarily unavailable. Please try again later or switch to another model.',
+    apiConfigError: 'Service temporarily unavailable. Please contact support or try switching to another model.',
+    apiServiceUnavailable: 'Service temporarily unavailable. Please try again later.',
     // Model names
     modelArkSDK: 'Ark SDK',
     modelReplicate: 'Replicate',
