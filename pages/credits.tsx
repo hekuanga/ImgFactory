@@ -68,7 +68,7 @@ const Credits: NextPage = () => {
         },
         body: JSON.stringify({
           creditsAmount: creditsAmount, // 积分数量
-          price: price, // 实际价格（元）
+          price: price, // 实际价格（澳币）
           packageId: packageId
         })
       });
