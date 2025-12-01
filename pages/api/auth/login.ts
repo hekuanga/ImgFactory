@@ -78,35 +78,106 @@ export default async function handler(
 
     // 登录成功
     if (result.user && result.session) {
-      // 同步创建或更新 Prisma User 记录
-      try {
-        await prisma.user.upsert({
-          where: { id: result.user.id },
-          update: {
-            email: result.user.email || email,
-            emailVerified: result.user.email_confirmed_at ? true : false,
-            name: result.user.user_metadata?.name || null,
-            image: result.user.user_metadata?.avatar_url || null,
-          },
-          create: {
-            id: result.user.id,
-            email: result.user.email || email,
-            emailVerified: result.user.email_confirmed_at ? true : false,
-            name: result.user.user_metadata?.name || null,
-            image: result.user.user_metadata?.avatar_url || null,
-          },
+      const user = result.user; // 保存引用，避免TypeScript类型检查问题
+      const userId = user.id;
+      
+      if (!userId) {
+        return res.status(500).json({
+          success: false,
+          error: 'User ID is missing'
         });
-      } catch (dbError) {
+      }
+      
+      // 同步创建或更新 Prisma User 记录，并检查是否需要补发注册奖励
+      try {
+        // 先检查用户是否已存在
+        const existingUser = await (prisma.user.findUnique as any)({
+          where: { id: userId },
+          select: { id: true, credits: true }
+        });
+
+        const isNewUser = !existingUser;
+
+        // 使用事务确保数据一致性
+        await prisma.$transaction(async (tx: any) => {
+          // 创建或更新用户
+          const upsertedUser = await tx.user.upsert({
+            where: { id: userId },
+            update: {
+              email: user.email || email,
+              emailVerified: user.email_confirmed_at ? true : false,
+              name: user.user_metadata?.name || null,
+              image: user.user_metadata?.avatar_url || null,
+            },
+            create: {
+              id: userId,
+              email: user.email || email,
+              emailVerified: user.email_confirmed_at ? true : false,
+              name: user.user_metadata?.name || null,
+              image: user.user_metadata?.avatar_url || null,
+              credits: 2, // 新用户赠送2积分
+            },
+          });
+
+          // 如果是新用户，记录积分历史
+          if (isNewUser) {
+            await tx.creditHistory.create({
+              data: {
+                userId: userId,
+                amount: 2,
+                type: 'bonus',
+                description: '新用户注册奖励'
+              }
+            });
+            console.log(`New user logged in: ${userId}, bonus 2 credits added`);
+          } else {
+            // 如果用户已存在，检查是否有注册奖励记录
+            const existingHistory = await tx.creditHistory.findFirst({
+              where: {
+                userId: userId,
+                type: 'bonus',
+                description: {
+                  contains: '新用户注册奖励'
+                }
+              }
+            });
+            
+            // 如果用户已存在但没有注册奖励记录，且积分为0或null，补发2积分
+            if (!existingHistory && (upsertedUser.credits === 0 || upsertedUser.credits === null)) {
+              await tx.user.update({
+                where: { id: userId },
+                data: { credits: 2 }
+              });
+              await tx.creditHistory.create({
+                data: {
+                  userId: userId,
+                  amount: 2,
+                  type: 'bonus',
+                  description: '新用户注册奖励（登录补发）'
+                }
+              });
+              console.log(`Existing user without bonus credits logged in: ${userId}, bonus 2 credits added`);
+            }
+          }
+        });
+      } catch (dbError: any) {
         console.error('Failed to sync user to database:', dbError);
+        // 记录详细错误信息
+        if (dbError?.code) {
+          console.error('Database error code:', dbError.code);
+        }
+        if (dbError?.message) {
+          console.error('Database error message:', dbError.message);
+        }
         // 不阻止登录流程，只记录错误
       }
 
       return res.status(200).json({
         success: true,
         user: {
-          id: result.user.id,
-          email: result.user.email,
-          ...(result.user.user_metadata && { metadata: result.user.user_metadata })
+          id: userId,
+          email: user.email,
+          ...(user.user_metadata && { metadata: user.user_metadata })
         },
         session: {
           access_token: result.session.access_token,
