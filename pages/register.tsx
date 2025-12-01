@@ -23,9 +23,11 @@ const Register: NextPage = () => {
   // 如果已登录，重定向到首页
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
-      router.push('/');
+      router.push('/').catch(() => {
+        // 忽略路由错误，避免无限循环
+      });
     }
-  }, [isAuthenticated, authLoading, router]);
+  }, [isAuthenticated, authLoading]); // 移除 router 依赖，避免无限循环
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();

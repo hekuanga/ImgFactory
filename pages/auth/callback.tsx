@@ -14,52 +14,70 @@ export default function AuthCallback() {
   const [message, setMessage] = useState('正在验证...');
 
   useEffect(() => {
+    // 使用 ref 来跟踪是否已经处理过，避免重复执行
+    const hasProcessedRef = { current: false };
     let timeoutId: NodeJS.Timeout;
     let authStateSubscription: { unsubscribe: () => void } | null = null;
-    let hasResolved = false;
 
     const handleAuthCallback = async () => {
+      // 如果已经处理过，直接返回
+      if (hasProcessedRef.current) {
+        return;
+      }
+
       try {
         // 方法1: 监听 auth 状态变化（推荐，更可靠）
-        authStateSubscription = supabaseClient.auth.onAuthStateChange(async (event, session) => {
+        const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
           // 防止重复处理
-          if (hasResolved) return;
+          if (hasProcessedRef.current) {
+            subscription.unsubscribe();
+            return;
+          }
 
           console.log('Auth state changed:', event, session ? 'has session' : 'no session');
 
           if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
             if (session && session.user) {
-              hasResolved = true;
+              hasProcessedRef.current = true;
               setStatus('success');
               setMessage('验证成功！正在跳转...');
-              if (authStateSubscription) {
-                authStateSubscription.unsubscribe();
-              }
+              subscription.unsubscribe();
               setTimeout(() => {
-                router.push('/?verified=true');
+                router.push('/?verified=true').catch(() => {
+                  // 忽略路由错误，避免无限循环
+                });
               }, 1500);
               return;
             }
           }
         });
+        
+        authStateSubscription = subscription;
 
         // 方法2: 同时检查当前 session（作为备用）
         // 等待 Supabase 处理 URL 中的 token
         await new Promise(resolve => setTimeout(resolve, 1000));
         
+        // 如果已经处理过，直接返回
+        if (hasProcessedRef.current) {
+          return;
+        }
+        
         const { data: { session }, error } = await supabaseClient.auth.getSession();
         
         if (error) {
           console.error('Auth callback error:', error);
-          if (!hasResolved) {
-            hasResolved = true;
+          if (!hasProcessedRef.current) {
+            hasProcessedRef.current = true;
             setStatus('error');
             setMessage(`验证失败：${error.message}`);
             if (authStateSubscription) {
               authStateSubscription.unsubscribe();
             }
             setTimeout(() => {
-              router.push('/login?error=verification_failed');
+              router.push('/login?error=verification_failed').catch(() => {
+                // 忽略路由错误
+              });
             }, 3000);
           }
           return;
@@ -67,30 +85,34 @@ export default function AuthCallback() {
 
         if (session && session.user) {
           // 验证成功，已自动登录
-          if (!hasResolved) {
-            hasResolved = true;
+          if (!hasProcessedRef.current) {
+            hasProcessedRef.current = true;
             setStatus('success');
             setMessage('验证成功！正在跳转...');
             if (authStateSubscription) {
               authStateSubscription.unsubscribe();
             }
             setTimeout(() => {
-              router.push('/?verified=true');
+              router.push('/?verified=true').catch(() => {
+                // 忽略路由错误
+              });
             }, 1500);
           }
         } else {
           // 没有立即检测到 session，等待 auth state change 事件
           // 设置超时，如果5秒后仍然没有session，显示错误
           timeoutId = setTimeout(() => {
-            if (!hasResolved) {
-              hasResolved = true;
+            if (!hasProcessedRef.current) {
+              hasProcessedRef.current = true;
               // 再次检查一次 session（可能已经设置了）
               supabaseClient.auth.getSession().then(({ data: { session: finalSession } }) => {
                 if (finalSession && finalSession.user) {
                   setStatus('success');
                   setMessage('验证成功！正在跳转...');
                   setTimeout(() => {
-                    router.push('/?verified=true');
+                    router.push('/?verified=true').catch(() => {
+                      // 忽略路由错误
+                    });
                   }, 1500);
                 } else {
                   // 确实没有 session，但用户说可以登录，说明验证成功了
@@ -99,7 +121,9 @@ export default function AuthCallback() {
                   setStatus('success');
                   setMessage('验证成功！请前往登录页面登录。');
                   setTimeout(() => {
-                    router.push('/login?verified=true');
+                    router.push('/login?verified=true').catch(() => {
+                      // 忽略路由错误
+                    });
                   }, 2000);
                 }
                 if (authStateSubscription) {
@@ -111,15 +135,17 @@ export default function AuthCallback() {
         }
       } catch (err) {
         console.error('Auth callback error:', err);
-        if (!hasResolved) {
-          hasResolved = true;
+        if (!hasProcessedRef.current) {
+          hasProcessedRef.current = true;
           setStatus('error');
           setMessage('验证过程中发生错误，请重试');
           if (authStateSubscription) {
             authStateSubscription.unsubscribe();
           }
           setTimeout(() => {
-            router.push('/login?error=unknown');
+            router.push('/login?error=unknown').catch(() => {
+              // 忽略路由错误
+            });
           }, 3000);
         }
       }
@@ -129,6 +155,7 @@ export default function AuthCallback() {
 
     // 清理函数
     return () => {
+      hasProcessedRef.current = true; // 标记为已处理，防止后续执行
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
@@ -136,7 +163,7 @@ export default function AuthCallback() {
         authStateSubscription.unsubscribe();
       }
     };
-  }, [router]);
+  }, []); // 移除 router 依赖，避免无限循环
 
   return (
     <>
