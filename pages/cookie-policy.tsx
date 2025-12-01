@@ -62,8 +62,8 @@ const CookiePolicy: NextPage = () => {
               <p className='mb-4'>{t.legal.cookiePolicy.sections.contact.content}</p>
               <p className='mb-4'>
                 <strong>{t.legal.cookiePolicy.sections.contact.email}:</strong>{' '}
-                <a href='mailto:privacy@sweetstar.ai' className='text-blue-600 dark:text-blue-400 hover:underline'>
-                  privacy@sweetstar.ai
+                <a href='mailto:RaveLandBlueStar@gmail.com' className='text-blue-600 dark:text-blue-400 hover:underline'>
+                  RaveLandBlueStar@gmail.com
                 </a>
               </p>
             </section>

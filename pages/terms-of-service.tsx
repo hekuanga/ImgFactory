@@ -83,8 +83,8 @@ const TermsOfService: NextPage = () => {
               <p className='mb-4'>{t.legal.termsOfService.sections.contact.content}</p>
               <p className='mb-4'>
                 <strong>{t.legal.termsOfService.sections.contact.email}:</strong>{' '}
-                <a href='mailto:legal@sweetstar.ai' className='text-blue-600 dark:text-blue-400 hover:underline'>
-                  legal@sweetstar.ai
+                <a href='mailto:RaveLandBlueStar@gmail.com' className='text-blue-600 dark:text-blue-400 hover:underline'>
+                  RaveLandBlueStar@gmail.com
                 </a>
               </p>
             </section>

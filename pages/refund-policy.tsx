@@ -72,8 +72,8 @@ const RefundPolicy: NextPage = () => {
               <p className='mb-4'>{t.legal.refundPolicy.sections.contact.content}</p>
               <p className='mb-4'>
                 <strong>{t.legal.refundPolicy.sections.contact.email}:</strong>{' '}
-                <a href='mailto:refunds@sweetstar.ai' className='text-blue-600 dark:text-blue-400 hover:underline'>
-                  refunds@sweetstar.ai
+                <a href='mailto:RaveLandBlueStar@gmail.com' className='text-blue-600 dark:text-blue-400 hover:underline'>
+                  RaveLandBlueStar@gmail.com
                 </a>
               </p>
             </section>
