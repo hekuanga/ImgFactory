@@ -58,6 +58,19 @@ export default function Header() {
     };
 
     loadCredits();
+
+    // 监听积分更新事件
+    const handleCreditsUpdate = () => {
+      console.log('[Header] Credits update event received, refreshing credits...');
+      loadCredits();
+    };
+
+    // 监听自定义事件
+    window.addEventListener('creditsUpdated', handleCreditsUpdate);
+
+    return () => {
+      window.removeEventListener('creditsUpdated', handleCreditsUpdate);
+    };
   }, [user]);
 
   // 点击外部关闭积分菜单

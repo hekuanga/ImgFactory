@@ -570,6 +570,10 @@ const PassportPhoto: NextPage = () => {
             setUsedModel(parsedResponse.usedModel || null);
             setPhotoLoaded(true);
             loadRemainingGenerations(); // 重新加载剩余次数
+            // 触发积分更新事件
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('creditsUpdated'));
+            }
           }
         }
     } catch (error) {

@@ -226,6 +226,10 @@ const Home: NextPage = () => {
         if (typeof response === 'string') {
           // 如果是字符串，直接作为图片URL
           setRestoredImage(response);
+          // 触发积分更新事件
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('creditsUpdated'));
+          }
         } else if (response && typeof response === 'object') {
           // 如果是对象，提取图片URL和使用的模型
           setRestoredImage(response.imageUrl);
@@ -235,6 +239,10 @@ const Home: NextPage = () => {
           // 检查是否有模型切换信息
           if (response.modelSwitchInfo) {
             setModelSwitchMessage(response.modelSwitchInfo);
+          }
+          // 触发积分更新事件
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('creditsUpdated'));
           }
         }
       }
