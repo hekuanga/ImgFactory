@@ -472,7 +472,7 @@ const Home: NextPage = () => {
                   <div className='flex-1'>
                     <div className='flex items-center justify-between mb-3 sm:mb-4'>
                       <h2 className='font-medium text-base sm:text-lg text-slate-700 dark:text-slate-300 transition-colors duration-300'>{t.restore.restoredPhoto}</h2>
-                      {restoredImage && !error && (
+                      {restoredImage && (
                         <button
                           onClick={async () => {
                             // 重置修复结果
@@ -564,10 +564,10 @@ const Home: NextPage = () => {
                 {t.restore.uploadNewPhoto}
               </button>
             )}
-            {restoredImage && originalPhoto && !error && (
+            {originalPhoto && !loading && (
               <button
                 onClick={async () => {
-                  // 重置修复结果
+                  // 重置修复结果和错误
                   setRestoredImage(null);
                   setRestoredLoaded(false);
                   setError(null);
