@@ -413,7 +413,7 @@ export const zh = {
           email: '邮箱',
         },
         gdprRights: {
-          title: '4. GDPR权利请求',
+          title: '3. GDPR权利请求',
           content: '根据GDPR，您有权：',
           right1: '访问您的个人数据',
           right2: '删除您的个人数据',
@@ -423,7 +423,7 @@ export const zh = {
           responseTime: '我们将在收到请求后30天内响应您的请求。',
         },
         responseTime: {
-          title: '5. 响应时间',
+          title: '4. 响应时间',
           content: '我们致力于在收到您的询问后5个工作日内回复。对于复杂的法律或数据保护请求，可能需要最多30天。',
         },
       },

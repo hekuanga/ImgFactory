@@ -413,7 +413,7 @@ export const en = {
           email: 'Email',
         },
         gdprRights: {
-          title: '4. GDPR Rights Requests',
+          title: '3. GDPR Rights Requests',
           content: 'Under GDPR, you have the right to:',
           right1: 'Access your personal data',
           right2: 'Delete your personal data',
@@ -423,7 +423,7 @@ export const en = {
           responseTime: 'We will respond to your request within 30 days of receipt.',
         },
         responseTime: {
-          title: '5. Response Time',
+          title: '4. Response Time',
           content: 'We strive to respond to your inquiries within 5 business days. For complex legal or data protection requests, it may take up to 30 days.',
         },
       },
