@@ -22,18 +22,26 @@ export default async function handler(
   try {
     const user = await verifyAuth(req, res);
     if (!user) {
+      console.log('[CreditsBalance] No user found in request');
       return res.status(401).json({
         success: false,
         error: 'Unauthorized'
       });
     }
+    
+    console.log(`[CreditsBalance] User authenticated: id=${user.id}, email=${user.email}`);
 
     try {
+      // 添加日志用于调试
+      console.log(`[CreditsBalance] Querying credits for userId: ${user.id}, email: ${user.email}`);
+      
       // 获取用户积分余额
       const userRecord = await (prisma.user.findUnique as any)({
         where: { id: user.id },
         select: { credits: true }
       });
+
+      console.log(`[CreditsBalance] User record found:`, userRecord ? `credits=${userRecord.credits}` : 'not found');
 
       if (!userRecord) {
         // 如果用户不存在，使用 upsert 创建用户记录（避免唯一约束冲突）
@@ -80,9 +88,12 @@ export default async function handler(
         }
       }
 
+      const credits = userRecord.credits ?? 0;
+      console.log(`[CreditsBalance] Returning credits: ${credits} for userId: ${user.id}`);
+      
       return res.status(200).json({
         success: true,
-        credits: userRecord.credits || 0
+        credits: credits
       });
     } catch (dbError: any) {
       // 处理数据库连接错误和列不存在错误，优雅降级

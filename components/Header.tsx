@@ -28,9 +28,12 @@ export default function Header() {
       try {
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (!session) {
+          console.log('[Header] No session found, setting credits to null');
           setCredits(null);
           return;
         }
+
+        console.log('[Header] Loading credits for user:', user.id, user.email);
 
         const creditsResponse = await fetch('/api/credits/balance', {
           headers: {
@@ -39,11 +42,18 @@ export default function Header() {
         });
 
         const creditsData = await creditsResponse.json();
+        console.log('[Header] Credits API response:', creditsData);
+        
         if (creditsData.success && creditsData.credits !== undefined) {
+          console.log('[Header] Setting credits to:', creditsData.credits);
           setCredits(creditsData.credits);
+        } else {
+          console.warn('[Header] Credits API returned unsuccessful response:', creditsData);
+          setCredits(0);
         }
       } catch (error) {
-        console.error('Load credits error:', error);
+        console.error('[Header] Load credits error:', error);
+        setCredits(0);
       }
     };
 
