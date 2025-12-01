@@ -32,37 +32,26 @@ const Contact: NextPage = () => {
               <h2 className='text-2xl font-semibold mb-4'>{t.legal.contact.sections.contactInfo.title}</h2>
               <p className='mb-4'>
                 <strong>{t.legal.contact.sections.contactInfo.general}:</strong>{' '}
-                <a href='mailto:contact@sweetstar.ai' className='text-blue-600 dark:text-blue-400 hover:underline'>
-                  contact@sweetstar.ai
+                <a href='mailto:RaveLandBlueStar@gmail.com' className='text-blue-600 dark:text-blue-400 hover:underline'>
+                  RaveLandBlueStar@gmail.com
                 </a>
               </p>
               <p className='mb-4'>
                 <strong>{t.legal.contact.sections.contactInfo.privacy}:</strong>{' '}
-                <a href='mailto:privacy@sweetstar.ai' className='text-blue-600 dark:text-blue-400 hover:underline'>
-                  privacy@sweetstar.ai
+                <a href='mailto:RaveLandBlueStar@gmail.com' className='text-blue-600 dark:text-blue-400 hover:underline'>
+                  RaveLandBlueStar@gmail.com
                 </a>
               </p>
               <p className='mb-4'>
                 <strong>{t.legal.contact.sections.contactInfo.legal}:</strong>{' '}
-                <a href='mailto:legal@sweetstar.ai' className='text-blue-600 dark:text-blue-400 hover:underline'>
-                  legal@sweetstar.ai
+                <a href='mailto:RaveLandBlueStar@gmail.com' className='text-blue-600 dark:text-blue-400 hover:underline'>
+                  RaveLandBlueStar@gmail.com
                 </a>
               </p>
               <p className='mb-4'>
                 <strong>{t.legal.contact.sections.contactInfo.refunds}:</strong>{' '}
-                <a href='mailto:refunds@sweetstar.ai' className='text-blue-600 dark:text-blue-400 hover:underline'>
-                  refunds@sweetstar.ai
-                </a>
-              </p>
-            </section>
-
-            <section className='mb-8'>
-              <h2 className='text-2xl font-semibold mb-4'>{t.legal.contact.sections.dataProtection.title}</h2>
-              <p className='mb-4'><strong>{t.legal.contact.sections.dataProtection.officer}:</strong> Data Protection Officer</p>
-              <p className='mb-4'>
-                <strong>{t.legal.contact.sections.dataProtection.email}:</strong>{' '}
-                <a href='mailto:privacy@sweetstar.ai' className='text-blue-600 dark:text-blue-400 hover:underline'>
-                  privacy@sweetstar.ai
+                <a href='mailto:RaveLandBlueStar@gmail.com' className='text-blue-600 dark:text-blue-400 hover:underline'>
+                  RaveLandBlueStar@gmail.com
                 </a>
               </p>
             </section>
