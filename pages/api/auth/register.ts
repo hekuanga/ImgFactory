@@ -86,12 +86,12 @@ export default async function handler(
         });
       }
       
-      // 同步创建 Prisma User 记录，并赠送新用户1积分
+      // 同步创建 Prisma User 记录，并赠送新用户2积分
       try {
         // 先检查用户是否已存在
         const existingUser = await (prisma.user.findUnique as any)({
           where: { id: userId },
-          select: { id: true }
+          select: { id: true, credits: true }
         });
 
         const isNewUser = !existingUser;
@@ -99,7 +99,7 @@ export default async function handler(
         // 使用事务确保数据一致性
         await prisma.$transaction(async (tx: any) => {
           // 创建或更新用户
-          await tx.user.upsert({
+          const upsertedUser = await tx.user.upsert({
             where: { id: userId },
             update: {
               email: userEmail || email,
@@ -113,7 +113,7 @@ export default async function handler(
               emailVerified: user.email_confirmed_at ? true : false,
               name: user.user_metadata?.name || metadata?.name || null,
               image: user.user_metadata?.avatar_url || null,
-              credits: isNewUser ? 2 : 0, // 新用户赠送2积分
+              credits: 2, // 新用户赠送2积分
             },
           });
 
@@ -128,11 +128,44 @@ export default async function handler(
               }
             });
             console.log(`New user registered: ${userId}, bonus 2 credits added`);
+          } else {
+            // 如果用户已存在但没有积分历史记录，检查是否需要添加
+            const existingHistory = await tx.creditHistory.findFirst({
+              where: {
+                userId: userId,
+                type: 'bonus',
+                description: '新用户注册奖励'
+              }
+            });
+            
+            // 如果用户已存在但没有注册奖励记录，且积分为0，可能是之前注册失败，现在补发
+            if (!existingHistory && (upsertedUser.credits === 0 || upsertedUser.credits === null)) {
+              await tx.user.update({
+                where: { id: userId },
+                data: { credits: 2 }
+              });
+              await tx.creditHistory.create({
+                data: {
+                  userId: userId,
+                  amount: 2,
+                  type: 'bonus',
+                  description: '新用户注册奖励（补发）'
+                }
+              });
+              console.log(`Existing user without bonus credits: ${userId}, bonus 2 credits added`);
+            }
           }
         });
-      } catch (dbError) {
+      } catch (dbError: any) {
         console.error('Failed to sync user to database:', dbError);
-        // 不阻止注册流程，只记录错误
+        // 记录详细错误信息
+        if (dbError?.code) {
+          console.error('Database error code:', dbError.code);
+        }
+        if (dbError?.message) {
+          console.error('Database error message:', dbError.message);
+        }
+        // 不阻止注册流程，只记录错误（Supabase注册已成功）
       }
 
       return res.status(201).json({
@@ -164,12 +197,12 @@ export default async function handler(
         });
       }
       
-      // 同步创建 Prisma User 记录（即使需要验证），并赠送新用户1积分
+      // 同步创建 Prisma User 记录（即使需要验证），并赠送新用户2积分
       try {
         // 先检查用户是否已存在
         const existingUser = await (prisma.user.findUnique as any)({
           where: { id: userId },
-          select: { id: true }
+          select: { id: true, credits: true }
         });
 
         const isNewUser = !existingUser;
@@ -177,7 +210,7 @@ export default async function handler(
         // 使用事务确保数据一致性
         await prisma.$transaction(async (tx: any) => {
           // 创建或更新用户
-          await tx.user.upsert({
+          const upsertedUser = await tx.user.upsert({
             where: { id: userId },
             update: {
               email: userEmail || email,
@@ -191,7 +224,7 @@ export default async function handler(
               emailVerified: false,
               name: user.user_metadata?.name || metadata?.name || null,
               image: user.user_metadata?.avatar_url || null,
-              credits: isNewUser ? 2 : 0, // 新用户赠送2积分
+              credits: 2, // 新用户赠送2积分
             },
           });
 
@@ -206,11 +239,44 @@ export default async function handler(
               }
             });
             console.log(`New user registered (email verification required): ${userId}, bonus 2 credits added`);
+          } else {
+            // 如果用户已存在但没有积分历史记录，检查是否需要添加
+            const existingHistory = await tx.creditHistory.findFirst({
+              where: {
+                userId: userId,
+                type: 'bonus',
+                description: '新用户注册奖励'
+              }
+            });
+            
+            // 如果用户已存在但没有注册奖励记录，且积分为0，可能是之前注册失败，现在补发
+            if (!existingHistory && (upsertedUser.credits === 0 || upsertedUser.credits === null)) {
+              await tx.user.update({
+                where: { id: userId },
+                data: { credits: 2 }
+              });
+              await tx.creditHistory.create({
+                data: {
+                  userId: userId,
+                  amount: 2,
+                  type: 'bonus',
+                  description: '新用户注册奖励（补发）'
+                }
+              });
+              console.log(`Existing user without bonus credits (email verification required): ${userId}, bonus 2 credits added`);
+            }
           }
         });
-      } catch (dbError) {
+      } catch (dbError: any) {
         console.error('Failed to sync user to database:', dbError);
-        // 不阻止注册流程，只记录错误
+        // 记录详细错误信息
+        if (dbError?.code) {
+          console.error('Database error code:', dbError.code);
+        }
+        if (dbError?.message) {
+          console.error('Database error message:', dbError.message);
+        }
+        // 不阻止注册流程，只记录错误（Supabase注册已成功）
       }
       
       return res.status(200).json({

@@ -36,14 +36,22 @@ export default async function handler(
       });
 
       if (!userRecord) {
-        // 如果用户不存在，创建用户记录（默认0积分）
+        // 如果用户不存在，使用 upsert 创建用户记录（避免唯一约束冲突）
         try {
-          await (prisma.user.create as any)({
-            data: {
+          const createdUser = await (prisma.user.upsert as any)({
+            where: { id: user.id },
+            update: {
+              email: user.email || '',
+            },
+            create: {
               id: user.id,
               email: user.email || '',
               credits: 0
             }
+          });
+          return res.status(200).json({
+            success: true,
+            credits: createdUser.credits || 0
           });
         } catch (createError: any) {
           // 如果创建失败（可能是数据库连接问题），返回默认值
@@ -56,12 +64,20 @@ export default async function handler(
               credits: 0
             });
           }
+          // 如果是唯一约束冲突（P2002），说明用户已存在，重新查询
+          if (createError?.code === 'P2002') {
+            console.warn('User already exists (unique constraint), re-querying:', createError.message);
+            const existingUser = await (prisma.user.findUnique as any)({
+              where: { id: user.id },
+              select: { credits: true }
+            });
+            return res.status(200).json({
+              success: true,
+              credits: existingUser?.credits || 0
+            });
+          }
           throw createError;
         }
-        return res.status(200).json({
-          success: true,
-          credits: 0
-        });
       }
 
       return res.status(200).json({
