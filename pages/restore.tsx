@@ -186,6 +186,12 @@ const Home: NextPage = () => {
 
       let response = await res.json();
       if (res.status !== 200) {
+        // 清除之前的修复结果
+        setRestoredImage(null);
+        setRestoredLoaded(false);
+        setUsedModel(null);
+        setModelSwitchMessage(null);
+        
         // 处理错误响应，根据错误代码和当前语言显示简化的错误消息
         let errorMsg = '';
         
@@ -233,6 +239,12 @@ const Home: NextPage = () => {
         }
       }
     } catch (error) {
+      // 清除之前的修复结果
+      setRestoredImage(null);
+      setRestoredLoaded(false);
+      setUsedModel(null);
+      setModelSwitchMessage(null);
+      
       // 提供更详细的捕获异常信息
       console.error('生成照片时发生错误:', error);
       setError(`${t.restore.serviceUnavailable}。${t.restore.serviceUnavailableSuggestion}`);
@@ -429,7 +441,7 @@ const Home: NextPage = () => {
               </div>
             </div>
           )}
-          {restoredImage && originalPhoto && !sideBySide && (
+          {restoredImage && originalPhoto && !sideBySide && !error && (
             <div className='w-full max-w-4xl'>
               <div className='bg-[#F7F4E9] rounded-3xl sm:rounded-[40px] p-4 sm:p-8 shadow-[0_8px_32px_rgba(0,0,0,0.1)] border-4 border-[#E8DEBB] relative overflow-hidden'>
                 {/* 内部装饰效果 */}
@@ -460,7 +472,7 @@ const Home: NextPage = () => {
                   <div className='flex-1'>
                     <div className='flex items-center justify-between mb-3 sm:mb-4'>
                       <h2 className='font-medium text-base sm:text-lg text-slate-700 dark:text-slate-300 transition-colors duration-300'>{t.restore.restoredPhoto}</h2>
-                      {restoredImage && (
+                      {restoredImage && !error && (
                         <button
                           onClick={async () => {
                             // 重置修复结果
@@ -552,7 +564,7 @@ const Home: NextPage = () => {
                 {t.restore.uploadNewPhoto}
               </button>
             )}
-            {restoredImage && originalPhoto && (
+            {restoredImage && originalPhoto && !error && (
               <button
                 onClick={async () => {
                   // 重置修复结果
@@ -576,7 +588,7 @@ const Home: NextPage = () => {
                 {loading ? t.restore.loading : t.restore.regenerate}
               </button>
             )}
-            {restoredImage && (
+            {restoredImage && !error && (
               <button
                 onClick={() => {
                   downloadPhoto(restoredImage!, appendNewToName(photoName!));
