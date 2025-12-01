@@ -25,6 +25,11 @@ export default function AuthCallback() {
         return;
       }
 
+      // 记录当前URL用于调试
+      console.log('[AuthCallback] Current URL:', typeof window !== 'undefined' ? window.location.href : 'server-side');
+      console.log('[AuthCallback] Hash:', typeof window !== 'undefined' ? window.location.hash : 'N/A');
+      console.log('[AuthCallback] Search:', typeof window !== 'undefined' ? window.location.search : 'N/A');
+
       try {
         // 方法1: 监听 auth 状态变化（推荐，更可靠）
         const { data: { subscription } } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
