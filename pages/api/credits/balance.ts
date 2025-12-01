@@ -36,12 +36,34 @@ export default async function handler(
       console.log(`[CreditsBalance] Querying credits for userId: ${user.id}, email: ${user.email}`);
       
       // 获取用户积分余额
+      // 确保 user.id 是字符串格式（Supabase 返回的 ID 是字符串）
+      const userId = String(user.id);
+      console.log(`[CreditsBalance] Querying with userId (string): ${userId}, type: ${typeof userId}`);
+      
       const userRecord = await (prisma.user.findUnique as any)({
-        where: { id: user.id },
+        where: { id: userId },
         select: { credits: true }
       });
 
-      console.log(`[CreditsBalance] User record found:`, userRecord ? `credits=${userRecord.credits}` : 'not found');
+      console.log(`[CreditsBalance] User record found:`, userRecord ? `credits=${userRecord.credits}, type=${typeof userRecord.credits}` : 'not found');
+      
+      // 如果没找到，尝试通过邮箱查找（备用方案）
+      if (!userRecord && user.email) {
+        console.log(`[CreditsBalance] User not found by ID, trying to find by email: ${user.email}`);
+        const userByEmail = await (prisma.user.findUnique as any)({
+          where: { email: user.email },
+          select: { id: true, credits: true }
+        });
+        if (userByEmail) {
+          console.log(`[CreditsBalance] Found user by email: id=${userByEmail.id}, credits=${userByEmail.credits}`);
+          console.warn(`[CreditsBalance] WARNING: User ID mismatch! Supabase ID: ${userId}, DB ID: ${userByEmail.id}`);
+          // 如果找到用户但ID不匹配，返回该用户的积分
+          return res.status(200).json({
+            success: true,
+            credits: userByEmail.credits ?? 0
+          });
+        }
+      }
 
       if (!userRecord) {
         // 如果用户不存在，使用 upsert 创建用户记录（避免唯一约束冲突）
