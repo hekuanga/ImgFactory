@@ -458,7 +458,53 @@ const Home: NextPage = () => {
 
                   {/* 修复后 */}
                   <div className='flex-1'>
-                    <h2 className='mb-3 sm:mb-4 font-medium text-base sm:text-lg text-slate-700 dark:text-slate-300 transition-colors duration-300'>{t.restore.restoredPhoto}</h2>
+                    <div className='flex items-center justify-between mb-3 sm:mb-4'>
+                      <h2 className='font-medium text-base sm:text-lg text-slate-700 dark:text-slate-300 transition-colors duration-300'>{t.restore.restoredPhoto}</h2>
+                      {restoredImage && (
+                        <button
+                          onClick={async () => {
+                            // 重置修复结果
+                            setRestoredImage(null);
+                            setRestoredLoaded(false);
+                            setError(null);
+                            setUsedModel(null);
+                            setModelSwitchMessage(null);
+                            
+                            // 等待UI更新后再重新生成
+                            await new Promise(resolve => setTimeout(resolve, 200));
+                            
+                            // 重新生成照片
+                            if (originalPhoto) {
+                              await generatePhoto(originalPhoto);
+                            }
+                          }}
+                          disabled={loading}
+                          className={`text-xs sm:text-sm px-3 py-1.5 rounded-lg font-medium transition shadow-sm ${
+                            loading 
+                              ? 'opacity-50 cursor-not-allowed bg-slate-200 dark:bg-slate-600 text-slate-500 dark:text-slate-400' 
+                              : 'bg-blue-500 hover:bg-blue-600 text-white'
+                          }`}
+                          title={t.restore.regenerate}
+                        >
+                          {loading ? (
+                            <span className='flex items-center gap-1'>
+                              <svg className='animate-spin h-3 w-3' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24'>
+                                <circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4'></circle>
+                                <path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'></path>
+                              </svg>
+                              {t.restore.loading}
+                            </span>
+                          ) : (
+                            <span className='flex items-center gap-1'>
+                              <svg className='h-3 w-3' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' />
+                              </svg>
+                              {t.restore.regenerate}
+                            </span>
+                          )}
+                        </button>
+                      )}
+                    </div>
                     <div
                       onClick={() => document.getElementById('preview-modal')?.classList.remove('hidden')}
                       className='bg-white dark:bg-slate-700 rounded-2xl sm:rounded-3xl p-2 sm:p-4 shadow-inner border-2 border-[#E8DEBB] dark:border-slate-600 overflow-hidden cursor-zoom-in relative group transition-colors duration-300'
@@ -506,7 +552,7 @@ const Home: NextPage = () => {
                 {t.restore.uploadNewPhoto}
               </button>
             )}
-            {restoredLoaded && originalPhoto && (
+            {restoredImage && originalPhoto && (
               <button
                 onClick={async () => {
                   // 重置修复结果
@@ -530,12 +576,12 @@ const Home: NextPage = () => {
                 {loading ? t.restore.loading : t.restore.regenerate}
               </button>
             )}
-            {restoredLoaded && (
+            {restoredImage && (
               <button
                 onClick={() => {
                   downloadPhoto(restoredImage!, appendNewToName(photoName!));
                 }}
-                className='bg-white rounded-xl text-slate-700 border-2 border-[#E8DEBB] font-medium px-6 py-3 hover:bg-[#F7F4E9] transition shadow-lg'
+                className='bg-white dark:bg-slate-800 rounded-xl text-slate-700 dark:text-slate-300 border-2 border-[#E8DEBB] dark:border-slate-600 font-medium px-6 py-3 hover:bg-[#F7F4E9] dark:hover:bg-slate-700 transition shadow-lg'
               >
                 {t.restore.download}
               </button>
