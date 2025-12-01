@@ -1,227 +1,199 @@
 # Vercel 环境变量配置指南
 
-## 问题：本地正常，但 Vercel 部署后不正常
+## 问题描述
 
-这是一个常见的部署问题，通常与环境变量配置有关。
+在 Vercel 部署后出现以下错误：
+- `Error: Missing Supabase environment variables in production`
+- 登录和注册功能无法正常工作
 
-## 快速检查清单
+## 解决方案
 
-### ✅ 1. 确认环境变量已设置
+### 1. 在 Vercel Dashboard 中配置环境变量
 
-在 Vercel Dashboard 中：
+#### 步骤 1：登录 Vercel Dashboard
 
-1. 登录 [Vercel Dashboard](https://vercel.com)
+1. 访问 [Vercel Dashboard](https://vercel.com/dashboard)
 2. 选择你的项目
-3. 进入 **Settings** > **Environment Variables**
-4. 确认以下变量已设置：
 
-**必需的环境变量：**
+#### 步骤 2：进入环境变量设置
+
+1. 点击项目名称进入项目详情
+2. 点击 **Settings** 标签
+3. 在左侧菜单中找到 **Environment Variables**
+
+#### 步骤 3：添加必需的环境变量
+
+点击 **Add New** 按钮，逐个添加以下环境变量：
+
+##### 必需的环境变量
+
+1. **NEXT_PUBLIC_SUPABASE_URL**
+   - **Value**: 你的 Supabase 项目 URL
+   - **Environment**: 选择 `Production`, `Preview`, `Development`（全选）
+   - **示例**: `https://xxxxx.supabase.co`
+
+2. **NEXT_PUBLIC_SUPABASE_ANON_KEY**
+   - **Value**: 你的 Supabase Anon Key
+   - **Environment**: 选择 `Production`, `Preview`, `Development`（全选）
+   - **示例**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+
+3. **SUPABASE_SERVICE_ROLE_KEY**（可选，但推荐）
+   - **Value**: 你的 Supabase Service Role Key
+   - **Environment**: 选择 `Production`, `Preview`, `Development`（全选）
+   - **注意**: 这是敏感密钥，不要暴露到客户端
+
+##### 其他可能需要的环境变量
+
+4. **DATABASE_URL**
+   - **Value**: PostgreSQL 数据库连接字符串
+   - **Environment**: 选择 `Production`, `Preview`, `Development`（全选）
+
+5. **ARK_API_KEY**（如果使用方舟 SDK）
+   - **Value**: 方舟 SDK API 密钥
+   - **Environment**: 选择 `Production`, `Preview`, `Development`（全选）
+
+6. **REPLICATE_API_KEY**（如果使用 Replicate）
+   - **Value**: Replicate API 密钥
+   - **Environment**: 选择 `Production`, `Preview`, `Development`（全选）
+
+7. **STRIPE_SECRET_KEY**（如果使用 Stripe）
+   - **Value**: Stripe Secret Key
+   - **Environment**: 选择 `Production`（仅生产环境）
+
+8. **STRIPE_WEBHOOK_SECRET**（如果使用 Stripe Webhook）
+   - **Value**: Stripe Webhook Secret
+   - **Environment**: 选择 `Production`（仅生产环境）
+
+9. **NEXT_PUBLIC_SITE_URL**（推荐）
+   - **Value**: 你的 Vercel 部署域名
+   - **Environment**: 选择 `Production`, `Preview`（不选 Development）
+   - **示例**: `https://your-project.vercel.app`
+
+### 2. 获取 Supabase 环境变量
+
+#### 步骤 1：登录 Supabase Dashboard
+
+1. 访问 [Supabase Dashboard](https://app.supabase.com)
+2. 选择你的项目
+
+#### 步骤 2：获取 API 密钥
+
+1. 进入 **Settings** > **API**
+2. 找到 **Project URL**，复制作为 `NEXT_PUBLIC_SUPABASE_URL`
+3. 找到 **anon public** key，复制作为 `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+4. 找到 **service_role** key，复制作为 `SUPABASE_SERVICE_ROLE_KEY`
+   - **注意**: Service Role Key 有完整权限，请妥善保管
+
+### 3. 验证环境变量配置
+
+#### 方法 1：检查 Vercel 部署日志
+
+1. 在 Vercel Dashboard 中查看最新的部署
+2. 点击部署查看构建日志
+3. 确认没有 `Missing Supabase environment variables` 错误
+
+#### 方法 2：使用测试 API（如果已创建）
+
+访问：`https://your-project.vercel.app/api/test-supabase`
+
+应该返回：
+```json
+{
+  "success": true,
+  "clientConfig": {
+    "url": "https://xxxxx.supabase.co...",
+    "hasAnonKey": true,
+    "hasServiceRoleKey": true
+  }
+}
 ```
-NEXT_PUBLIC_SUPABASE_URL=https://fbafdgtmmzoqrgrtdkkl.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=你的Supabase匿名密钥
-```
 
-**其他可能需要的变量：**
-```
-NEXT_PUBLIC_SITE_URL=https://imgfactorys.vercel.app
-STRIPE_SECRET_KEY=sk_live_...
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-```
+### 4. 重新部署
 
-### ✅ 2. 确认环境变量作用域
+配置环境变量后：
 
-在 Vercel 中，每个环境变量都有作用域：
+1. **自动重新部署**：Vercel 会自动检测到环境变量变化并重新部署
+2. **手动触发部署**：在 Vercel Dashboard 中点击 **Redeploy**
 
-- **Production** - 生产环境（必须设置）
-- **Preview** - 预览环境（可选）
-- **Development** - 开发环境（可选）
+### 5. 环境变量作用域
 
-**重要：** 确保所有 `NEXT_PUBLIC_*` 变量都设置了 **Production** 作用域！
+在添加环境变量时，可以选择以下环境：
 
-### ✅ 3. 重新部署
+- **Production**: 生产环境（主域名）
+- **Preview**: 预览环境（Pull Request 预览）
+- **Development**: 开发环境（本地开发）
 
-更新环境变量后：
-
-1. 进入 **Deployments** 标签
-2. 点击最新部署右侧的 **"..."** 菜单
-3. 选择 **"Redeploy"**
-4. 或者推送新的代码触发自动部署
+**建议**：
+- Supabase 相关变量：全选（Production, Preview, Development）
+- Stripe 相关变量：仅 Production
+- 其他敏感变量：根据需要使用
 
 ## 常见问题
 
-### 问题 1: 环境变量未设置
+### Q1: 为什么本地正常，但 Vercel 部署后出错？
 
-**症状：**
-- 本地正常
-- Vercel 部署后显示 "NetworkError"
-- 浏览器控制台显示配置错误
+**A**: 本地环境变量存储在 `.env.local` 文件中，但 Vercel 需要单独配置环境变量。Vercel 不会自动读取 `.env.local` 文件。
 
-**解决方案：**
-1. 在 Vercel Dashboard 中添加所有必需的环境变量
-2. 确保作用域设置为 **Production**
-3. 重新部署
+### Q2: 环境变量配置后仍然报错？
 
-### 问题 2: 环境变量值错误
+**A**: 检查以下几点：
+1. 环境变量名称是否正确（区分大小写）
+2. 是否选择了正确的环境（Production/Preview/Development）
+3. 是否重新部署了应用
+4. 检查 Vercel 部署日志中的实际环境变量值（注意：敏感值会被隐藏）
 
-**症状：**
-- 环境变量已设置，但仍然报错
-- 可能是 URL 或 Key 错误
+### Q3: 如何确认环境变量已正确加载？
 
-**解决方案：**
-1. 从 Supabase Dashboard 重新获取正确的值
-2. 在 Vercel 中更新环境变量
-3. 重新部署
+**A**: 
+1. 查看 Vercel 部署日志
+2. 在代码中添加临时日志（仅开发环境）
+3. 使用测试 API 端点
 
-### 问题 3: 环境变量作用域错误
+### Q4: 环境变量值包含特殊字符怎么办？
 
-**症状：**
-- 环境变量已设置，但只在某些环境可用
-- Preview 部署失败，但 Production 正常（或反之）
+**A**: 
+- 不需要转义，直接粘贴完整值
+- 确保没有多余的空格或换行符
+- 如果值很长，使用 Vercel CLI 或 API 设置
 
-**解决方案：**
-1. 检查每个环境变量的作用域设置
-2. 确保 Production 环境的所有变量都已设置
-3. 如果需要，也为 Preview 和 Development 设置
+### Q5: 如何批量导入环境变量？
 
-### 问题 4: 构建时环境变量未注入
+**A**: 
+1. 使用 Vercel CLI：
+   ```bash
+   vercel env add NEXT_PUBLIC_SUPABASE_URL production
+   ```
+2. 使用 Vercel API
+3. 在 Dashboard 中逐个添加（推荐，更安全）
 
-**症状：**
-- 环境变量已设置
-- 但代码中 `process.env.NEXT_PUBLIC_*` 返回 `undefined`
+## 安全检查
 
-**解决方案：**
-1. 确认变量名以 `NEXT_PUBLIC_` 开头（客户端变量）
-2. 重新部署（环境变量更改后必须重新部署）
-3. 检查 `next.config.js` 是否有特殊配置
+### ⚠️ 重要提示
 
-## 验证环境变量
+1. **不要将敏感密钥提交到 Git**
+   - `.env.local` 应该在 `.gitignore` 中
+   - 不要在代码中硬编码密钥
 
-### 方法 1: 检查 Vercel 构建日志
+2. **区分公开和私有变量**
+   - `NEXT_PUBLIC_*` 变量会暴露到客户端
+   - 不要将 Service Role Key 设置为 `NEXT_PUBLIC_*`
 
-1. 在 Vercel Dashboard 中进入 **Deployments**
-2. 点击最新的部署
-3. 查看 **Build Logs**
-4. 搜索环境变量相关的日志
+3. **定期轮换密钥**
+   - 定期更新 API 密钥
+   - 如果密钥泄露，立即在 Supabase Dashboard 中重置
 
-### 方法 2: 在代码中临时输出（仅用于调试）
+## 相关文档
 
-在 `pages/login.tsx` 或 `pages/register.tsx` 中添加：
+- [Vercel 环境变量文档](https://vercel.com/docs/concepts/projects/environment-variables)
+- [Supabase 配置指南](./SUPABASE_SETUP.md)
+- [Vercel 部署指南](./VERCEL_DEPLOYMENT.md)
 
-```typescript
-useEffect(() => {
-  // 仅在开发环境或调试时使用
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-    console.log('Has Anon Key:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-  }
-}, []);
-```
+## 快速检查清单
 
-**注意：** 调试完成后记得删除这些代码！
-
-### 方法 3: 使用 Vercel CLI
-
-```bash
-# 安装 Vercel CLI
-npm i -g vercel
-
-# 登录
-vercel login
-
-# 查看环境变量
-vercel env ls
-
-# 拉取环境变量到本地（用于测试）
-vercel env pull .env.local
-```
-
-## 环境变量设置步骤（详细）
-
-### 步骤 1: 获取 Supabase 配置
-
-1. 登录 [Supabase Dashboard](https://app.supabase.com)
-2. 选择项目
-3. 进入 **Settings** > **API**
-4. 复制：
-   - **Project URL** → `NEXT_PUBLIC_SUPABASE_URL`
-   - **anon/public key** → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-
-### 步骤 2: 在 Vercel 中设置
-
-1. 登录 [Vercel Dashboard](https://vercel.com)
-2. 选择项目
-3. 进入 **Settings** > **Environment Variables**
-4. 点击 **"Add New"**
-5. 填写：
-   - **Key**: `NEXT_PUBLIC_SUPABASE_URL`
-   - **Value**: `https://fbafdgtmmzoqrgrtdkkl.supabase.co`
-   - **Environment**: 选择 **Production**（必须！）
-6. 点击 **"Save"**
-7. 重复步骤 4-6 添加 `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-
-### 步骤 3: 重新部署
-
-1. 进入 **Deployments** 标签
-2. 点击最新部署的 **"..."** 菜单
-3. 选择 **"Redeploy"**
-4. 等待部署完成
-
-## 检查清单
-
-部署前确认：
-
-- [ ] `NEXT_PUBLIC_SUPABASE_URL` 已设置
-- [ ] `NEXT_PUBLIC_SUPABASE_ANON_KEY` 已设置
-- [ ] 两个变量的作用域都包含 **Production**
-- [ ] 变量值正确（从 Supabase Dashboard 复制）
+- [ ] `NEXT_PUBLIC_SUPABASE_URL` 已配置
+- [ ] `NEXT_PUBLIC_SUPABASE_ANON_KEY` 已配置
+- [ ] `SUPABASE_SERVICE_ROLE_KEY` 已配置（可选）
+- [ ] 环境变量已选择正确的环境（Production/Preview/Development）
 - [ ] 已重新部署应用
-
-## 调试技巧
-
-### 1. 检查浏览器控制台
-
-部署后，在浏览器中：
-
-1. 打开开发者工具（F12）
-2. 进入 **Console** 标签
-3. 查看是否有环境变量相关的错误
-
-### 2. 检查网络请求
-
-1. 进入 **Network** 标签
-2. 尝试登录/注册
-3. 查看失败的请求：
-   - URL 是否正确（应该是 Supabase URL）
-   - 状态码是什么
-   - 错误信息是什么
-
-### 3. 检查 Vercel 日志
-
-1. 在 Vercel Dashboard 中进入 **Deployments**
-2. 点击部署查看日志
-3. 查看是否有构建错误或运行时错误
-
-## 如果仍然无法解决
-
-1. **收集信息：**
-   - 浏览器控制台错误
-   - Network 标签中的失败请求
-   - Vercel 构建日志
-   - Vercel 运行时日志
-
-2. **验证 Supabase：**
-   - 确认 Supabase 项目正常运行
-   - 检查 Supabase Dashboard 中的项目状态
-
-3. **联系支持：**
-   - 提供收集的信息
-   - 说明本地正常但 Vercel 部署后不正常
-
-## 预防措施
-
-1. **使用 `.env.example` 文件**：列出所有必需的环境变量
-2. **文档化环境变量**：在 README 中说明需要哪些变量
-3. **自动化检查**：在 CI/CD 中检查环境变量
-4. **定期检查**：定期验证 Vercel 中的环境变量
-
+- [ ] 部署日志中没有环境变量相关错误
+- [ ] 登录/注册功能正常工作

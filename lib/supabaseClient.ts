@@ -31,16 +31,32 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // 在开发环境和生产环境都检查（但只在开发环境警告）
+// 注意：在构建时（NODE_ENV === 'production' 但还在构建阶段），环境变量可能还未加载
+// 因此我们只在运行时检查，构建时只警告，不报错
 if (!supabaseUrl || !supabaseAnonKey) {
+  // 检查是否在构建时（通过检查 NEXT_PHASE 来判断）
+  const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' || 
+                      process.env.NEXT_PHASE === 'phase-development-build';
+  
   if (process.env.NODE_ENV === 'development') {
     console.warn('Warning: Missing Supabase environment variables:');
     console.warn('  NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl || 'MISSING');
     console.warn('  NEXT_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'SET' : 'MISSING');
     console.warn('Auth features will be disabled');
+  } else if (isBuildTime) {
+    // 构建时：只警告，不报错（允许构建继续）
+    // 使用 console.warn 而不是 console.error，避免构建失败
+    console.warn('⚠️  Warning: Missing Supabase environment variables during build');
+    console.warn('   Please ensure environment variables are set in Vercel');
+    console.warn('   The app will use placeholder values, but auth features will not work');
+    console.warn('   See docs/VERCEL_ENV_VARIABLES.md for configuration instructions');
   } else {
-    // 生产环境：静默失败，但记录错误（不会暴露给用户）
-    console.error('Error: Missing Supabase environment variables in production');
-    console.error('Please check Vercel environment variables configuration');
+    // 运行时（生产环境）：记录警告（不报错，避免应用崩溃）
+    // 使用 console.warn 而不是 console.error，避免在运行时被视为错误
+    console.warn('⚠️  Warning: Missing Supabase environment variables in production runtime');
+    console.warn('   Please check Vercel environment variables configuration');
+    console.warn('   Auth features will be disabled');
+    console.warn('   See docs/VERCEL_ENV_VARIABLES.md for configuration instructions');
   }
 }
 
