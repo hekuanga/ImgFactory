@@ -64,19 +64,48 @@ const Register: NextPage = () => {
       }
 
       // 调用注册 API 路由（这样会执行积分赠送逻辑）
-      const registerResponse = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          password,
-          metadata: name ? { name } : {},
-        }),
-      });
+      // 添加超时处理
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30秒超时
+      
+      let registerResponse;
+      try {
+        registerResponse = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email,
+            password,
+            metadata: name ? { name } : {},
+          }),
+          signal: controller.signal,
+        });
+      } catch (fetchError: any) {
+        clearTimeout(timeoutId);
+        if (fetchError.name === 'AbortError') {
+          setError('请求超时，请检查网络连接后重试。如果问题持续，请联系管理员。');
+        } else if (fetchError.message?.includes('fetch') || fetchError.message?.includes('network') || fetchError.message?.includes('NetworkError')) {
+          setError('网络连接失败，请检查网络连接后重试。如果问题持续，可能是服务器配置问题，请联系管理员。');
+        } else {
+          setError('注册请求失败，请稍后重试');
+        }
+        setLoading(false);
+        return;
+      } finally {
+        clearTimeout(timeoutId);
+      }
 
-      const registerData = await registerResponse.json();
+      let registerData;
+      try {
+        registerData = await registerResponse.json();
+      } catch (parseError) {
+        console.error('Failed to parse register response:', parseError);
+        setError('服务器响应格式错误，请稍后重试');
+        setLoading(false);
+        return;
+      }
 
       if (!registerResponse.ok || !registerData.success) {
         let errorMessage = registerData.error || '注册失败，请重试';

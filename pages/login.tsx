@@ -52,16 +52,34 @@ const Login: NextPage = () => {
       const loginPromise = supabaseClient.auth.signInWithPassword({
         email,
         password,
+      }).catch((err) => {
+        // 捕获网络错误
+        if (err?.message?.includes('fetch') || err?.message?.includes('network') || err?.message?.includes('NetworkError') || err?.name === 'NetworkError') {
+          throw new Error('网络连接失败，请检查网络连接后重试。如果问题持续，可能是服务器配置问题，请联系管理员。');
+        }
+        throw err;
       });
       
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('请求超时，请检查网络连接')), 30000)
       );
       
-      const { data, error: signInError } = await Promise.race([
-        loginPromise,
-        timeoutPromise
-      ]) as any;
+      let data, signInError;
+      try {
+        const result = await Promise.race([
+          loginPromise,
+          timeoutPromise
+        ]) as any;
+        data = result?.data;
+        signInError = result?.error;
+      } catch (raceError: any) {
+        // 处理超时或网络错误
+        signInError = {
+          message: raceError.message || '登录请求失败，请稍后重试',
+          name: raceError.name || 'NetworkError'
+        };
+        data = null;
+      }
 
       if (signInError) {
         // 提供更友好的错误提示

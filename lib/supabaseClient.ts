@@ -58,13 +58,32 @@ export const supabaseClient: SupabaseClient<Database> = createClient<Database>(
       persistSession: true,
       detectSessionInUrl: true,
       // 添加重试配置
-      flowType: 'pkce'
+      flowType: 'pkce',
+      // 增加超时时间
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+      storageKey: 'supabase.auth.token'
     },
     // 添加全局配置以提高网络请求的可靠性
     global: {
       headers: {
         'X-Client-Info': 'restorephotos-web'
-      }
+      },
+      // 添加 fetch 选项以提高网络可靠性（仅在客户端）
+      ...(typeof window !== 'undefined' && {
+        fetch: (url: any, options: any = {}) => {
+          // 增加超时时间到 30 秒
+          const timeout = 30000;
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), timeout);
+          
+          return fetch(url, {
+            ...options,
+            signal: controller.signal,
+          }).finally(() => {
+            clearTimeout(timeoutId);
+          });
+        }
+      })
     }
   }
 );
